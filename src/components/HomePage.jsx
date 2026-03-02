@@ -1,8 +1,9 @@
 import { countAvailableWeeks } from '../utils/helpers'
+import InfoBulle from './InfoBulle'
 
 /** Écran 1 : Page d'accueil avec choix de l'établissement */
 export default function HomePage({ data, onSelectEtablissement }) {
-  const { organization, etablissements, lastUpdated } = data
+  const { organization, etablissements, lastUpdated, formsUrlNouvelEtablissement } = data
 
   // Formater la date de dernière mise à jour
   const updateDate = new Date(lastUpdated).toLocaleDateString('fr-CH', {
@@ -82,6 +83,34 @@ export default function HomePage({ data, onSelectEtablissement }) {
             </button>
           )
         })}
+
+        {/* Carte "+" pour ajouter un établissement (référent cadre) */}
+        <a
+          href={formsUrlNouvelEtablissement}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-xl border-2 border-dashed border-gray-300 p-5 text-center
+                     hover:border-cb-blue hover:bg-cb-blue-light transition-all duration-200
+                     focus:outline-none focus:ring-2 focus:ring-cb-blue focus:ring-offset-2
+                     cursor-pointer group flex flex-col items-center justify-center gap-3 min-h-[140px]"
+          aria-label="Proposer un nouvel établissement"
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-cb-blue/10 flex items-center justify-center transition-colors">
+            <svg className="w-6 h-6 text-gray-400 group-hover:text-cb-blue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium text-gray-500 group-hover:text-cb-blue transition-colors inline-flex items-center gap-1.5">
+              Ajouter un établissement
+              <InfoBulle>
+                <p className="font-semibold mb-1">Espace réservé aux responsables</p>
+                <p>Cette action est destinée aux <strong>référents cadres</strong> de la Fondation Clair-Bois. Un <strong>code d'accès</strong> vous sera demandé dans le formulaire pour valider votre identité.</p>
+              </InfoBulle>
+            </p>
+            <p className="text-xs text-gray-400 mt-1">Espace référent cadre</p>
+          </div>
+        </a>
       </div>
 
       {/* Timestamp mise à jour */}

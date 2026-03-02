@@ -22,7 +22,7 @@ function App() {
 
   // Charger le planning.json UNE SEULE FOIS au démarrage
   useEffect(() => {
-    fetch(import.meta.env.BASE_URL + 'planning.json')
+    fetch(import.meta.env.BASE_URL + 'planning.json', { cache: 'no-cache' })
       .then((res) => {
         if (!res.ok) throw new Error('Erreur lors du chargement des données')
         return res.json()
@@ -116,6 +116,7 @@ function App() {
         {currentView === 'etablissement' && selectedEtablissement && (
           <EtablissementPage
             etablissement={selectedEtablissement}
+            formsUrlNouveauSecteur={data.formsUrlNouveauSecteur}
             onSelectSecteur={goToSecteur}
             onBack={goToHome}
           />

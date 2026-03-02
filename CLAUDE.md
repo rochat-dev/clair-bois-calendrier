@@ -51,10 +51,27 @@ src/
 Tout vient du fichier `public/planning.json`. Aucune donnée en dur dans le code React.
 Le lien d'inscription redirige vers le Microsoft Forms (placeholder : `google.ch` pour l'instant).
 
+## Liens Forms dans le JSON (tous placeholder `google.ch` pour l'instant)
+- `formsUrl` : formulaire d'inscription stagiaire (référent externe → Microsoft Forms existant, 43 questions)
+- `formsUrlNouvelEtablissement` : formulaire pour proposer un nouvel établissement (référent cadre). Inclut les secteurs et les dispos initiales.
+- `formsUrlNouveauSecteur` : formulaire pour proposer un nouveau secteur dans un établissement existant (référent cadre, reçoit `?etablissement=...`). Inclut les dispos initiales.
+
+### Flux Power Automate prévu (derrière les Forms)
+1. Le référent cadre remplit un Forms (nouvel établissement ou nouveau secteur, avec ses dispos)
+2. Power Automate récupère les réponses, valide le référent (code d'accès / email autorisé)
+3. Power Automate met à jour le `planning.json` (ou une source de données qui alimente le JSON)
+4. Le site affiche automatiquement les nouvelles données au prochain chargement
+
+### Décision architecturale : garder Microsoft Forms
+Le formulaire d'inscription stagiaire (43 questions, données sensibles : AVS, curatelle, AI) reste sur Microsoft Forms car :
+- Données sensibles incompatibles avec un site statique GitHub Pages
+- Power Automate déjà branché sur le Forms existant
+- Le calendrier est la vraie valeur ajoutée, pas le formulaire
+
 ## Fonctionnalités Phase 2 (NE PAS DÉVELOPPER)
-- Formulaire d'inscription intégré (remplacement de Microsoft Forms)
+- Formulaire d'inscription intégré (remplacement de Microsoft Forms, nécessite backend Azure)
 - Écran d'accueil enrichi avec présentation de chaque établissement
-- Panel référent cadre pour gérer les disponibilités directement sur le site
+- Panel référent cadre pour gérer les disponibilités directement sur le site (sans Forms)
 - Système de conditions (vérification doublon stagiaire, etc.)
 - Notifications par email
 
