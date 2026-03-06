@@ -88,7 +88,8 @@ export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
   url.searchParams.set('r2876f0c952f44887946296b4c95367a3', etablissement)
   url.searchParams.set('r1faa50a65150406b95d3a62e45550e40', secteur)
   url.searchParams.set('r50efe78018854247bf6e734db7188d70', startDate)
-  return url.toString()
+  // URLSearchParams encode les espaces en '+', Forms attend '%20'
+  return url.toString().replace(/\+/g, '%20')
 }
 
 /** Retourne le numéro ISO de la semaine pour une date donnée */
@@ -183,10 +184,11 @@ export function transformPlanningData(flat) {
       }
     }
 
-    const date = new Date(c.dateDebut + 'T00:00:00')
-    const weekNumber = getISOWeekNumber(date)
-    const month = date.getMonth()
-    const calYear = date.getFullYear()
+    // Utiliser dateFin (vendredi) pour le numéro de semaine car dateDebut peut être un dimanche
+    const endDate = new Date(c.dateFin + 'T00:00:00')
+    const weekNumber = getISOWeekNumber(endDate)
+    const month = endDate.getMonth()
+    const calYear = endDate.getFullYear()
     const year =
       month === 0 && weekNumber > 50
         ? calYear - 1
@@ -194,10 +196,16 @@ export function transformPlanningData(flat) {
           ? calYear + 1
           : calYear
 
+    // Calculer le lundi de cette semaine ISO (quel que soit le jour de dateFin)
+    const dow = endDate.getDay() || 7 // 1=lun ... 7=dim
+    const monday = new Date(endDate)
+    monday.setDate(endDate.getDate() - dow + 1)
+    const mondayStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+
     etab.secteursMap[c.secteur].weeks.push({
       weekNumber,
       year,
-      startDate: c.dateDebut,
+      startDate: mondayStr,
       endDate: c.dateFin,
       totalSlots: c.placesTotal,
       usedSlots: c.placesUtilisees,
