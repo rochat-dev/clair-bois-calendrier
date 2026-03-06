@@ -84,12 +84,8 @@ export function countAvailableWeeks(secteur) {
 
 /** Génère l'URL d'inscription avec paramètres pré-remplis (IDs Forms réels) */
 export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
-  const url = new URL(baseUrl)
-  url.searchParams.set('r2876f0c952f44887946296b4c95367a3', etablissement)
-  url.searchParams.set('r1faa50a65150406b95d3a62e45550e40', secteur)
-  url.searchParams.set('r50efe78018854247bf6e734db7188d70', startDate)
-  // URLSearchParams encode les espaces en '+', Forms attend '%20'
-  return url.toString().replace(/\+/g, '%20')
+  const e = encodeURIComponent
+  return `${baseUrl}?r2876f0c952f44887946296b4c95367a3=${e(etablissement)}&r1faa50a65150406b95d3a62e45550e40=${e(secteur)}&r50efe78018854247bf6e734db7188d70=${e(startDate)}`
 }
 
 /** Retourne le numéro ISO de la semaine pour une date donnée */
