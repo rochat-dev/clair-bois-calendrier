@@ -187,6 +187,10 @@ export default function SecteurCalendar({
                         : hasData
                           ? getStatusBgLight(weekData.status) + ' border'
                           : 'text-gray-400'
+                    } ${
+                      day && day.toDateString() === new Date().toDateString()
+                        ? 'font-bold ring-2 ring-cb-blue rounded'
+                        : ''
                     }`}
                   >
                     {day ? day.getDate() : ''}
