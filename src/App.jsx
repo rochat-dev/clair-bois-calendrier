@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { transformPlanningData } from './utils/helpers'
 import Header from './components/Header'
 import HomePage from './components/HomePage'
 import EtablissementPage from './components/EtablissementPage'
@@ -28,7 +29,7 @@ function App() {
         return res.json()
       })
       .then((json) => {
-        setData(json)
+        setData(transformPlanningData(json))
         setLoading(false)
       })
       .catch((err) => {

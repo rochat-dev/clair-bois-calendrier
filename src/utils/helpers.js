@@ -82,14 +82,13 @@ export function countAvailableWeeks(secteur) {
   return secteur.weeks.filter((w) => w.status !== 'full').length
 }
 
-/** Génère l'URL d'inscription avec paramètres pré-remplis */
-export function buildFormsUrl(baseUrl, etablissement, secteur, weekNumber) {
-  const params = new URLSearchParams({
-    etablissement: etablissement,
-    secteur: secteur,
-    semaine: weekNumber.toString(),
-  })
-  return `${baseUrl}?${params.toString()}`
+/** Génère l'URL d'inscription avec paramètres pré-remplis (IDs Forms réels) */
+export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
+  const url = new URL(baseUrl)
+  url.searchParams.set('r2876f0c952f44887946296b4c95367a3', etablissement)
+  url.searchParams.set('r1faa50a65150406b95d3a62e45550e40', secteur)
+  url.searchParams.set('r50efe78018854247bf6e734db7188d70', startDate)
+  return url.toString()
 }
 
 /** Retourne le numéro ISO de la semaine pour une date donnée */
@@ -141,4 +140,89 @@ export function groupByWeeks(calendarDays) {
     weeks.push(calendarDays.slice(i, i + 7))
   }
   return weeks
+}
+
+/** Génère un slug URL-friendly à partir d'un nom */
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+/**
+ * Transforme le format plat (Power Automate) en format hiérarchique (composants React).
+ * Si le JSON contient déjà `etablissements`, il est retourné tel quel (rétrocompatibilité).
+ */
+export function transformPlanningData(flat) {
+  if (flat.etablissements) return flat
+
+  const { lastUpdated, formsUrl, formsUrlNouvelEtablissement, formsUrlNouveauSecteur, config, creneaux } = flat
+
+  const etabMap = {}
+  for (const c of creneaux) {
+    if (!etabMap[c.etablissement]) {
+      const cfg = config?.[c.etablissement] || {}
+      etabMap[c.etablissement] = {
+        id: slugify(c.etablissement),
+        name: c.etablissement,
+        description: cfg.description || '',
+        icon: cfg.icon || '',
+        secteursMap: {},
+      }
+    }
+    const etab = etabMap[c.etablissement]
+    if (!etab.secteursMap[c.secteur]) {
+      etab.secteursMap[c.secteur] = {
+        id: slugify(c.secteur),
+        name: c.secteur,
+        description: '',
+        weeks: [],
+      }
+    }
+
+    const date = new Date(c.dateDebut + 'T00:00:00')
+    const weekNumber = getISOWeekNumber(date)
+    const month = date.getMonth()
+    const calYear = date.getFullYear()
+    const year =
+      month === 0 && weekNumber > 50
+        ? calYear - 1
+        : month === 11 && weekNumber === 1
+          ? calYear + 1
+          : calYear
+
+    etab.secteursMap[c.secteur].weeks.push({
+      weekNumber,
+      year,
+      startDate: c.dateDebut,
+      endDate: c.dateFin,
+      totalSlots: c.placesTotal,
+      usedSlots: c.placesUtilisees,
+      status: computeStatus(c.placesTotal, c.placesUtilisees),
+    })
+  }
+
+  const etablissements = Object.values(etabMap).map((etab) => ({
+    id: etab.id,
+    name: etab.name,
+    description: etab.description,
+    icon: etab.icon,
+    secteurs: Object.values(etab.secteursMap),
+  }))
+
+  return {
+    lastUpdated,
+    formsUrl,
+    formsUrlNouvelEtablissement,
+    formsUrlNouveauSecteur,
+    organization: {
+      name: 'Fondation Clair-Bois',
+      logo: 'assets/logo-clair-bois.png',
+      description: 'Calendrier des disponibilités de stage pour les référents externes',
+    },
+    etablissements,
+  }
 }

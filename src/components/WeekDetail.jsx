@@ -23,7 +23,7 @@ export default function WeekDetail({
     formsUrl,
     etablissement.name,
     secteur.name,
-    week.weekNumber
+    week.startDate
   )
 
   const breadcrumbItems = [
