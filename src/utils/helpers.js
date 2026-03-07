@@ -156,18 +156,25 @@ function slugify(str) {
 export function transformPlanningData(flat) {
   if (flat.etablissements) return flat
 
-  const { lastUpdated, formsUrl, formsUrlNouvelEtablissement, formsUrlNouveauSecteur, config, creneaux } = flat
+  const { lastUpdated, formsUrl, formsUrlNouvelEtablissement, formsUrlNouveauSecteur, creneaux } = flat
 
   const etabMap = {}
   for (const c of creneaux) {
     if (!etabMap[c.etablissement]) {
-      const cfg = config?.[c.etablissement] || {}
       etabMap[c.etablissement] = {
         id: slugify(c.etablissement),
         name: c.etablissement,
-        description: cfg.description || '',
-        icon: cfg.icon || '',
+        description: c.description || '',
+        icon: c.icon || '',
         secteursMap: {},
+      }
+    } else {
+      // Mettre à jour description/icon si pas encore défini
+      if (c.description && !etabMap[c.etablissement].description) {
+        etabMap[c.etablissement].description = c.description
+      }
+      if (c.icon && !etabMap[c.etablissement].icon) {
+        etabMap[c.etablissement].icon = c.icon
       }
     }
     const etab = etabMap[c.etablissement]
