@@ -104,7 +104,7 @@ export default function EtablissementPage({
 
         {/* Carte "+" pour ajouter un secteur (référent cadre) */}
         <a
-          href={`${formsUrlNouveauSecteur}?etablissement=${encodeURIComponent(etablissement.name)}`}
+          href={`${formsUrlNouveauSecteur}&rb1c6311a61044eb184fa3270fd065e32=${encodeURIComponent(etablissement.name)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border-2 border-dashed border-gray-300 p-5 text-center
