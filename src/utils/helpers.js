@@ -180,33 +180,36 @@ export function transformPlanningData(flat) {
       }
     }
 
-    // Utiliser dateFin (vendredi) pour le numéro de semaine car dateDebut peut être un dimanche
-    const endDate = new Date(c.dateFin + 'T00:00:00')
-    const weekNumber = getISOWeekNumber(endDate)
-    const month = endDate.getMonth()
-    const calYear = endDate.getFullYear()
-    const year =
-      month === 0 && weekNumber > 50
-        ? calYear - 1
-        : month === 11 && weekNumber === 1
-          ? calYear + 1
-          : calYear
+    // Itérer sur toutes les semaines couvertes par le créneau
+    const startD = new Date(c.dateDebut + 'T00:00:00')
+    const endD = new Date(c.dateFin + 'T00:00:00')
+    let cursor = new Date(startD)
 
-    // Calculer le lundi de cette semaine ISO (quel que soit le jour de dateFin)
-    const dow = endDate.getDay() || 7 // 1=lun ... 7=dim
-    const monday = new Date(endDate)
-    monday.setDate(endDate.getDate() - dow + 1)
-    const mondayStr = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+    while (cursor <= endD) {
+      const wn = getISOWeekNumber(cursor)
+      const cMonth = cursor.getMonth()
+      const cYear = cursor.getFullYear()
+      const yr =
+        cMonth === 0 && wn > 50
+          ? cYear - 1
+          : cMonth === 11 && wn === 1
+            ? cYear + 1
+            : cYear
 
-    etab.secteursMap[c.secteur].weeks.push({
-      weekNumber,
-      year,
-      startDate: mondayStr,
-      endDate: c.dateFin,
-      totalSlots: c.placesTotal,
-      usedSlots: c.placesUtilisees,
-      status: computeStatus(c.placesTotal, c.placesUtilisees),
-    })
+      etab.secteursMap[c.secteur].weeks.push({
+        weekNumber: wn,
+        year: yr,
+        startDate: c.dateDebut,
+        endDate: c.dateFin,
+        totalSlots: c.placesTotal,
+        usedSlots: c.placesUtilisees,
+        status: computeStatus(c.placesTotal, c.placesUtilisees),
+      })
+
+      // Avancer au lundi suivant
+      const curDow = cursor.getDay() || 7
+      cursor.setDate(cursor.getDate() + (8 - curDow))
+    }
   }
 
   const etablissements = Object.values(etabMap).map((etab) => ({
