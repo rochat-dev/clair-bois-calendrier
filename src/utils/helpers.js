@@ -94,6 +94,38 @@ export function getUniqueCreneaux(weeks) {
   return Array.from(seen.values())
 }
 
+/** Agrège les semaines par year-weekNumber pour gérer les créneaux chevauchants */
+export function aggregateWeekCreneaux(weeks) {
+  const map = {}
+  for (const w of weeks) {
+    const key = `${w.year}-${w.weekNumber}`
+    if (!map[key]) {
+      map[key] = {
+        weekNumber: w.weekNumber,
+        year: w.year,
+        creneaux: [],
+        totalSlots: 0,
+        usedSlots: 0,
+        status: 'unknown',
+      }
+    }
+    // Dédupliquer par startDate+endDate (même créneau sur plusieurs semaines)
+    const already = map[key].creneaux.some(
+      (c) => c.startDate === w.startDate && c.endDate === w.endDate
+    )
+    if (!already) {
+      map[key].creneaux.push(w)
+      map[key].totalSlots += w.totalSlots
+      map[key].usedSlots += w.usedSlots
+    }
+  }
+  // Calculer le statut agrégé
+  for (const key of Object.keys(map)) {
+    map[key].status = computeStatus(map[key].totalSlots, map[key].usedSlots)
+  }
+  return map
+}
+
 /** Génère l'URL d'inscription avec paramètres pré-remplis (IDs Forms réels) */
 export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
   const e = encodeURIComponent

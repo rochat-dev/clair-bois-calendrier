@@ -7,6 +7,7 @@ import {
   getISOWeekNumber,
   getStatusColor,
   getStatusBgLight,
+  aggregateWeekCreneaux,
 } from '../utils/helpers'
 
 /** Écran 3 : Calendrier mensuel d'un secteur */
@@ -47,11 +48,8 @@ export default function SecteurCalendar({
     }
   }
 
-  // Créer un index des semaines par numéro pour recherche rapide
-  const weekIndex = {}
-  secteur.weeks.forEach((w) => {
-    weekIndex[`${w.year}-${w.weekNumber}`] = w
-  })
+  // Créer un index des semaines agrégé (gère les créneaux chevauchants)
+  const weekIndex = aggregateWeekCreneaux(secteur.weeks)
 
   // Générer les jours et semaines du calendrier
   const calendarDays = getCalendarDays(currentMonth, currentYear)
@@ -162,7 +160,7 @@ export default function SecteurCalendar({
                 }}
                 aria-label={
                   hasData
-                    ? `Semaine ${weekNum} — ${weekData.totalSlots - weekData.usedSlots} places disponibles`
+                    ? `Semaine ${weekNum}${weekData.creneaux.length > 1 ? ` (${weekData.creneaux.length} créneaux)` : ''} — ${weekData.totalSlots - weekData.usedSlots} places disponibles`
                     : undefined
                 }
               >
@@ -172,7 +170,7 @@ export default function SecteurCalendar({
                     hasData ? getStatusColor(weekData.status) : 'text-gray-300'
                   }`}
                 >
-                  S{weekNum}
+                  S{weekNum}{hasData && weekData.creneaux.length > 1 ? ` (${weekData.creneaux.length})` : ''}
                 </div>
 
                 {/* Jours */}

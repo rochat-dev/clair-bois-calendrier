@@ -48,19 +48,36 @@ src/
 - **Gris** (`cb-gray`) : pas de données / fermé
 
 ## Données
-Tout vient du fichier `public/planning.json`. Aucune donnée en dur dans le code React.
-Le lien d'inscription redirige vers le Microsoft Forms (placeholder : `google.ch` pour l'instant).
 
-## Liens Forms dans le JSON (tous placeholder `google.ch` pour l'instant)
-- `formsUrl` : formulaire d'inscription stagiaire (référent externe → Microsoft Forms existant, 43 questions)
-- `formsUrlNouvelEtablissement` : formulaire pour proposer un nouvel établissement (référent cadre). Inclut les secteurs et les dispos initiales.
-- `formsUrlNouveauSecteur` : formulaire pour proposer un nouveau secteur dans un établissement existant (référent cadre, reçoit `?etablissement=...`). Inclut les dispos initiales.
+`public/planning.json` est **généré automatiquement** par le Flux 3 Power Automate et poussé sur GitHub via l'API Contents. Le frontend le transforme au chargement.
 
-### Flux Power Automate prévu (derrière les Forms)
-1. Le référent cadre remplit un Forms (nouvel établissement ou nouveau secteur, avec ses dispos)
-2. Power Automate récupère les réponses, valide le référent (code d'accès / email autorisé)
-3. Power Automate met à jour le `planning.json` (ou une source de données qui alimente le JSON)
-4. Le site affiche automatiquement les nouvelles données au prochain chargement
+### Format du JSON (généré par PA — format plat)
+```json
+{
+  "lastUpdated": "2026-03-06T18:10:17Z",
+  "formsUrl": "https://forms.office.com/e/3SZvXC6kb5",
+  "formsUrlNouvelEtablissement": "https://google.ch",
+  "formsUrlNouveauSecteur": "https://google.ch",
+  "config": { "Blanchisserie Tourbillon": { "description": "...", "icon": "👕" } },
+  "creneaux": [
+    { "etablissement": "...", "secteur": "...", "dateDebut": "2026-03-02", "dateFin": "2026-03-06", "placesTotal": 3, "placesUtilisees": 1 }
+  ]
+}
+```
+
+### Transformation frontend (helpers.js)
+`transformPlanningData()` convertit le format plat en hiérarchique (`etablissements[].secteurs[].weeks[]`) pour les composants React. Rétrocompatible : si le JSON contient déjà `etablissements`, il est retourné tel quel.
+
+### Liens Forms
+- `formsUrl` : formulaire d'inscription stagiaire (réel, 43 questions, IDs Forms réels pour pré-remplissage)
+- `formsUrlNouvelEtablissement` : placeholder `google.ch` (futur formulaire référent cadre)
+- `formsUrlNouveauSecteur` : placeholder `google.ch` (futur formulaire référent cadre)
+
+### Pipeline automatique (opérationnel)
+1. Référent externe s'inscrit via le calendrier → Microsoft Forms
+2. Flux 1 (PA) crée Stagiaire + Demande dans SharePoint
+3. Flux 3 (PA) se déclenche automatiquement → recalcule les places → pousse planning.json sur GitHub
+4. GitHub Pages redéploie → le site est à jour
 
 ### Décision architecturale : garder Microsoft Forms
 Le formulaire d'inscription stagiaire (43 questions, données sensibles : AVS, curatelle, AI) reste sur Microsoft Forms car :
@@ -75,10 +92,19 @@ Le formulaire d'inscription stagiaire (43 questions, données sensibles : AVS, c
 - Système de conditions (vérification doublon stagiaire, etc.)
 - Notifications par email
 
+## Fonctions utilitaires clés (helpers.js)
+- `transformPlanningData(flat)` : plat PA → hiérarchique React (rétrocompatible)
+- `buildFormsUrl(baseUrl, etablissement, secteur, startDate)` : URL pré-remplie avec `encodeURIComponent` (IDs Forms réels)
+- `computeStatus(totalSlots, usedSlots)` : calcule le statut couleur (>50% = vert, 1-50% = orange, 0 = rouge)
+- `getISOWeekNumber(date)` : numéro de semaine ISO
+- weekNumber calculé depuis `dateFin` (pas `dateDebut` qui peut être un dimanche)
+
 ## Principes de code
 - Composants React bien découpés
 - Code commenté en français
 - Noms de variables explicites
 - Le JSON est chargé UNE SEULE FOIS au démarrage
 - Animations/transitions fluides
-- 100% dynamique : ajouter un établissement/secteur dans le JSON = apparition automatique
+- 100% dynamique : ajouter un créneau dans SharePoint = apparition automatique sur le site
+
+**Projet lié** : `C:\Users\karim\PowerAutomate-Agent` — Backend Power Automate (Flux 1, 2, 3)
