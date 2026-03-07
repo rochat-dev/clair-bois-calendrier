@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Breadcrumb from './Breadcrumb'
+import InfoBulle from './InfoBulle'
 import {
   getCalendarDays,
   groupByWeeks,
@@ -14,6 +15,7 @@ import {
 export default function SecteurCalendar({
   etablissement,
   secteur,
+  formsUrlNouveauSecteur,
   onSelectWeek,
   onBackToEtablissement,
   onBackToHome,
@@ -219,6 +221,32 @@ export default function SecteurCalendar({
           </div>
         </div>
       </div>
+
+      {/* Ajouter un créneau (référent cadre) */}
+      {formsUrlNouveauSecteur && (
+        <div className="mt-4 text-center">
+          <a
+            href={`${formsUrlNouveauSecteur}&rb1c6311a61044eb184fa3270fd065e32=${encodeURIComponent(etablissement.name)}&r69f254172ecd4baa9c92b2ef2d86f48c=${encodeURIComponent(secteur.name)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-cb-blue
+                       transition-colors group py-2 px-4 rounded-lg hover:bg-cb-blue/5"
+          >
+            <span className="w-6 h-6 rounded-full border-2 border-dashed border-gray-300
+                             group-hover:border-cb-blue flex items-center justify-center
+                             transition-colors shrink-0">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </span>
+            <span>Ajouter un créneau pour {secteur.name}</span>
+            <InfoBulle>
+              <p className="font-semibold mb-1">Espace référent cadre</p>
+              <p>Vous êtes <strong>responsable de ce secteur</strong> ? Proposez un nouveau créneau de stage. Un <strong>code d'accès</strong> vous sera demandé.</p>
+            </InfoBulle>
+          </a>
+        </div>
+      )}
     </div>
   )
 }

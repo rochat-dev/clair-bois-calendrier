@@ -127,6 +127,7 @@ function App() {
           <SecteurCalendar
             etablissement={selectedEtablissement}
             secteur={selectedSecteur}
+            formsUrlNouveauSecteur={data.formsUrlNouveauSecteur}
             onSelectWeek={goToWeek}
             onBackToEtablissement={goBackToEtablissement}
             onBackToHome={goToHome}
