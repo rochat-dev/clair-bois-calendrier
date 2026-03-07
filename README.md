@@ -10,9 +10,11 @@ Ce site web permet aux référents externes (écoles spécialisées, assurances,
 
 - Vue par établissement et par secteur
 - Calendrier mensuel avec code couleur (vert/orange/rouge/gris)
-- Vue détaillée par semaine
-- Lien d'inscription vers Microsoft Forms
-- 100% dynamique : piloté par un fichier `planning.json`
+- Gestion des créneaux chevauchants (agrégation et affichage multi-créneaux)
+- Vue détaillée par semaine avec barre de progression
+- Lien d'inscription vers Microsoft Forms (pré-rempli)
+- Boutons "Ajouter" pour les référents cadres (établissement, secteur, créneau)
+- 100% dynamique : piloté par un fichier `planning.json` généré automatiquement
 - Responsive mobile-first
 - Accessible (WCAG AA)
 
@@ -35,11 +37,16 @@ npm run dev
 npm run build
 ```
 
-Le dossier `dist/` peut être déployé sur GitHub Pages.
+Le dossier `dist/` est déployé automatiquement sur GitHub Pages via GitHub Actions.
 
-## Mise à jour des données
+## Pipeline automatique
 
-Modifiez le fichier `public/planning.json` pour mettre à jour les disponibilités. Le site se met à jour automatiquement au prochain chargement.
+1. Un référent cadre crée un créneau via le formulaire Microsoft Forms "Gestion des créneaux"
+2. **Flux 2 (Power Automate)** traite la soumission et met à jour la liste SharePoint "Creneaux"
+3. **Flux 3 (Power Automate)** se déclenche automatiquement, recalcule les disponibilités et pousse `planning.json` sur ce repo
+4. GitHub Pages redéploie → le site affiche les nouvelles données
+
+Le fichier `public/planning.json` est donc **généré automatiquement** — ne pas le modifier manuellement.
 
 ## Licence
 
