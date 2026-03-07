@@ -1,6 +1,6 @@
 import Breadcrumb from './Breadcrumb'
 import InfoBulle from './InfoBulle'
-import { countAvailableWeeks, getStatusColor } from '../utils/helpers'
+import { getStatusColor } from '../utils/helpers'
 
 /** Écran 2 : Page d'un établissement avec choix du secteur */
 export default function EtablissementPage({
@@ -49,13 +49,13 @@ export default function EtablissementPage({
 
       <div className="grid gap-4 sm:grid-cols-2">
         {etablissement.secteurs.map((secteur) => {
-          const availableWeeks = countAvailableWeeks(secteur)
-          const totalWeeks = secteur.weeks.length
+          const availablePlaces = secteur.weeks.reduce((sum, w) => sum + Math.max(0, w.totalSlots - w.usedSlots), 0)
+          const totalPlaces = secteur.weeks.reduce((sum, w) => sum + w.totalSlots, 0)
 
           // Déterminer le statut global du secteur
           let globalStatus = 'full'
-          if (availableWeeks > totalWeeks / 2) globalStatus = 'available'
-          else if (availableWeeks > 0) globalStatus = 'almost_full'
+          if (totalPlaces > 0 && availablePlaces / totalPlaces > 0.5) globalStatus = 'available'
+          else if (availablePlaces > 0) globalStatus = 'almost_full'
 
           return (
             <button
@@ -74,7 +74,7 @@ export default function EtablissementPage({
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(globalStatus)}`}
                 >
-                  {availableWeeks}/{totalWeeks} sem.
+                  {availablePlaces}/{totalPlaces} place{totalPlaces > 1 ? 's' : ''}
                 </span>
               </div>
 
@@ -91,12 +91,12 @@ export default function EtablissementPage({
                         : 'bg-cb-red'
                   }`}
                   style={{
-                    width: `${totalWeeks > 0 ? (availableWeeks / totalWeeks) * 100 : 0}%`,
+                    width: `${totalPlaces > 0 ? (availablePlaces / totalPlaces) * 100 : 0}%`,
                   }}
                 />
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {availableWeeks} semaine{availableWeeks > 1 ? 's' : ''} disponible{availableWeeks > 1 ? 's' : ''}
+                {availablePlaces} place{availablePlaces > 1 ? 's' : ''} disponible{availablePlaces > 1 ? 's' : ''}
               </p>
             </button>
           )
