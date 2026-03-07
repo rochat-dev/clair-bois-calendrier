@@ -1,6 +1,6 @@
 import Breadcrumb from './Breadcrumb'
 import InfoBulle from './InfoBulle'
-import { getStatusColor } from '../utils/helpers'
+import { getStatusColor, getUniqueCreneaux } from '../utils/helpers'
 
 /** Écran 2 : Page d'un établissement avec choix du secteur */
 export default function EtablissementPage({
@@ -49,8 +49,9 @@ export default function EtablissementPage({
 
       <div className="grid gap-4 sm:grid-cols-2">
         {etablissement.secteurs.map((secteur) => {
-          const availablePlaces = secteur.weeks.reduce((sum, w) => sum + Math.max(0, w.totalSlots - w.usedSlots), 0)
-          const totalPlaces = secteur.weeks.reduce((sum, w) => sum + w.totalSlots, 0)
+          const creneaux = getUniqueCreneaux(secteur.weeks)
+          const availablePlaces = creneaux.reduce((sum, w) => sum + Math.max(0, w.totalSlots - w.usedSlots), 0)
+          const totalPlaces = creneaux.reduce((sum, w) => sum + w.totalSlots, 0)
 
           // Déterminer le statut global du secteur
           let globalStatus = 'full'

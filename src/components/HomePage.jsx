@@ -1,3 +1,4 @@
+import { getUniqueCreneaux } from '../utils/helpers'
 import InfoBulle from './InfoBulle'
 
 /** Écran 1 : Page d'accueil avec choix de l'établissement */
@@ -33,9 +34,9 @@ export default function HomePage({ data, onSelectEtablissement }) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {etablissements.map((etab) => {
-          // Calculer le nombre total de places disponibles
+          // Calculer le nombre total de places disponibles (dédupliqué par créneau)
           const totalPlaces = etab.secteurs.reduce(
-            (sum, s) => sum + s.weeks.reduce((wSum, w) => wSum + Math.max(0, w.totalSlots - w.usedSlots), 0),
+            (sum, s) => sum + getUniqueCreneaux(s.weeks).reduce((wSum, w) => wSum + Math.max(0, w.totalSlots - w.usedSlots), 0),
             0
           )
 

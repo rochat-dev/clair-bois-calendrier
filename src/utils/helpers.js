@@ -82,6 +82,18 @@ export function countAvailableWeeks(secteur) {
   return secteur.weeks.filter((w) => w.status !== 'full').length
 }
 
+/** Déduplique les semaines pour obtenir les créneaux uniques d'un secteur */
+export function getUniqueCreneaux(weeks) {
+  const seen = new Map()
+  for (const w of weeks) {
+    const key = `${w.startDate}-${w.endDate}`
+    if (!seen.has(key)) {
+      seen.set(key, w)
+    }
+  }
+  return Array.from(seen.values())
+}
+
 /** Génère l'URL d'inscription avec paramètres pré-remplis (IDs Forms réels) */
 export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
   const e = encodeURIComponent
