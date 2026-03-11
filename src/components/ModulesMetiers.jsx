@@ -315,6 +315,20 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
               <p className="text-sm text-gray-500 mt-2">
                 {selected.map(m => m.nom).join(', ')} — {formatDate(selectedSemaine.dateDebut)} au {formatDate(selectedSemaine.dateFin)}
               </p>
+
+              {/* Info : possibilite de revenir pour d'autres semaines */}
+              <div className="mt-6 bg-cb-blue-light rounded-xl p-4 max-w-md mx-auto">
+                <p className="text-sm text-cb-blue">
+                  Vous pouvez vous inscrire à d'autres modules sur une autre semaine.
+                  Revenez sur cette page après votre inscription.
+                </p>
+                <button
+                  onClick={() => { setStep('grille'); setSelectedSemaine(null); setSelected([]) }}
+                  className="mt-2 text-sm font-medium text-cb-blue hover:underline cursor-pointer"
+                >
+                  Choisir d'autres modules pour une autre semaine
+                </button>
+              </div>
             </div>
           )}
         </>
