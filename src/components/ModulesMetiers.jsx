@@ -1,19 +1,18 @@
 /**
  * ModulesMetiers.jsx — Vue "Semaine type" des modules metiers.
  *
- * Flow : 1) Choisir une semaine → 2) Selectionner 1 a 3 modules sur la grille
- *        → 3) S'inscrire (Forms) → 4) Revenir pour une autre semaine
+ * Flow : 1) Voir la grille des modules → 2) Cliquer un module → choisir une semaine
+ *        → 3) Repeter pour max 3 modules → 4) S'inscrire (1 seul formulaire)
  *
- * @param {Object} props.modulesMetiers - Donnees modules depuis planning.json
- * @param {string} props.formsUrl       - URL de base du formulaire d'inscription
- * @param {Function} props.onBack       - Retour a la page d'accueil
+ * Chaque module peut etre associe a une semaine differente.
+ * Un seul formulaire est soumis a la fin avec toutes les associations.
  */
 import { useState } from 'react'
 import { formatDate } from '../utils/helpers'
 
 const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
 const JOURS_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
-const HEURES = Array.from({ length: 10 }, (_, i) => i + 7) // 7h à 16h
+const HEURES = Array.from({ length: 10 }, (_, i) => i + 7)
 
 function getModuleStyle(mod) {
   const startH = parseInt(mod.heureDebut.split(':')[0])
@@ -34,106 +33,70 @@ function groupByJour(modules) {
 
 export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
   const { modules, semaines, maxSelection, formsUrlModules } = modulesMetiers
+  // selected = [{ mod, semaine }] — chaque entree lie un module a une semaine
   const [selected, setSelected] = useState([])
-  const [selectedSemaine, setSelectedSemaine] = useState(null)
+  // Module en cours de choix de semaine (popup)
+  const [pickingWeekFor, setPickingWeekFor] = useState(null)
 
   const modulesByJour = groupByJour(modules)
 
-  const toggleModule = (mod) => {
-    const key = `${mod.nom}-${mod.site}`
-    const isSelected = selected.some(s => `${s.nom}-${s.site}` === key)
-    if (isSelected) {
-      setSelected(selected.filter(s => `${s.nom}-${s.site}` !== key))
-    } else if (selected.length < maxSelection) {
-      setSelected([...selected, mod])
+  const modKey = (mod) => `${mod.nom}-${mod.site}`
+
+  const getSelection = (mod) =>
+    selected.find(s => modKey(s.mod) === modKey(mod))
+
+  const isModuleSelected = (mod) => !!getSelection(mod)
+
+  const handleModuleClick = (mod) => {
+    if (isModuleSelected(mod)) {
+      // Deselectionner
+      setSelected(selected.filter(s => modKey(s.mod) !== modKey(mod)))
+      return
     }
+    if (selected.length >= maxSelection) return
+    // Ouvrir le choix de semaine
+    setPickingWeekFor(mod)
   }
 
-  const isModuleSelected = (mod) =>
-    selected.some(s => `${s.nom}-${s.site}` === `${mod.nom}-${mod.site}`)
+  const assignWeek = (semaine) => {
+    if (!pickingWeekFor) return
+    setSelected([...selected, { mod: pickingWeekFor, semaine }])
+    setPickingWeekFor(null)
+  }
+
+  const removeSelection = (mod) => {
+    setSelected(selected.filter(s => modKey(s.mod) !== modKey(mod)))
+  }
 
   const buildInscriptionUrl = () => {
     const base = formsUrlModules || formsUrl
-    const modulesStr = selected.map(m => `${m.nom} (${m.site})`).join(', ')
-    return `${base}?rc347ff44177743a8b9561f6d6f9eed2c=${encodeURIComponent(modulesStr)}&reee4e33cc677406885a947061d7d9cde=${selectedSemaine.dateDebut}&r77ae6366339446f39c90be5aa93b3a71=${selectedSemaine.dateFin}`
+    // Encode chaque module avec sa semaine dans le champ modules
+    const modulesStr = selected
+      .map(s => `${s.mod.nom} (${s.mod.site}) — S${s.semaine.semaine} du ${s.semaine.dateDebut} au ${s.semaine.dateFin}`)
+      .join(', ')
+    return `${base}?rc347ff44177743a8b9561f6d6f9eed2c=${encodeURIComponent(modulesStr)}`
   }
 
-  const resetForNewWeek = () => {
-    setSelected([])
-    setSelectedSemaine(null)
-  }
-
-  // Pas encore de semaine choisie → etape 1
-  if (!selectedSemaine) {
-    return (
-      <div className="animate-fadeIn">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-4 cursor-pointer"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Retour à l'accueil
-        </button>
-
-        <div className="text-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
-            Modules métiers
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Choisissez d'abord votre semaine de découverte, puis sélectionnez vos modules.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {semaines.map((sem) => (
-            <button
-              key={sem.semaine}
-              onClick={() => setSelectedSemaine(sem)}
-              className="bg-white rounded-xl border-2 border-gray-200 p-5 text-left
-                         hover:border-cb-blue hover:shadow-md transition-all duration-200 cursor-pointer group"
-            >
-              <p className="font-bold text-gray-900 group-hover:text-cb-blue transition-colors">
-                Semaine {sem.semaine}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                {formatDate(sem.dateDebut)} — {formatDate(sem.dateFin)}
-              </p>
-              <div className="flex items-center gap-1.5 mt-3 text-cb-blue text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                Choisir cette semaine
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Semaine choisie → etape 2 : grille modules
   return (
     <div className="animate-fadeIn">
-      {/* Navigation retour */}
+      {/* Retour accueil */}
       <button
-        onClick={resetForNewWeek}
+        onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-4 cursor-pointer"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Changer de semaine
+        Retour à l'accueil
       </button>
 
-      {/* En-tete avec semaine selectionnee */}
+      {/* En-tete */}
       <div className="text-center mb-4">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
-          Semaine {selectedSemaine.semaine}
+          Modules métiers
         </h2>
         <p className="text-gray-600 text-sm">
-          {formatDate(selectedSemaine.dateDebut)} au {formatDate(selectedSemaine.dateFin)} — Sélectionnez 1 à {maxSelection} modules
+          Sélectionnez 1 à {maxSelection} modules puis associez chacun à une semaine.
         </p>
       </div>
 
@@ -148,17 +111,17 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
             </p>
             {selected.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {selected.map((m) => (
+                {selected.map((s) => (
                   <span
-                    key={`${m.nom}-${m.site}`}
+                    key={modKey(s.mod)}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white"
-                    style={{ backgroundColor: m.couleur }}
+                    style={{ backgroundColor: s.mod.couleur }}
                   >
-                    {m.nom} ({m.site})
+                    {s.mod.nom} ({s.mod.site}) — S{s.semaine.semaine}
                     <button
-                      onClick={() => toggleModule(m)}
+                      onClick={() => removeSelection(s.mod)}
                       className="ml-0.5 hover:opacity-70 cursor-pointer"
-                      aria-label={`Retirer ${m.nom}`}
+                      aria-label={`Retirer ${s.mod.nom}`}
                     >
                       ✕
                     </button>
@@ -167,7 +130,6 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
               </div>
             )}
           </div>
-          {/* Bouton inscription visible des 1 module selectionne */}
           {selected.length > 0 && (
             <a
               href={buildInscriptionUrl()}
@@ -220,13 +182,14 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
                   {modulesByJour[jour].map((mod) => {
                     const { top, height } = getModuleStyle(mod)
                     const isSel = isModuleSelected(mod)
+                    const sel = getSelection(mod)
                     const available = mod.placesTotal - mod.placesUtilisees
                     const canSelect = isSel || selected.length < maxSelection
 
                     return (
                       <button
-                        key={`${mod.nom}-${mod.site}`}
-                        onClick={() => canSelect && toggleModule(mod)}
+                        key={modKey(mod)}
+                        onClick={() => canSelect && handleModuleClick(mod)}
                         className={`absolute left-1 right-1 rounded-lg p-2 text-left transition-all duration-200
                           ${canSelect ? 'cursor-pointer hover:scale-[1.02] hover:shadow-md' : 'cursor-not-allowed opacity-50'}
                           ${isSel ? 'ring-3 ring-cb-blue ring-offset-1 shadow-lg scale-[1.02]' : ''}
@@ -244,7 +207,11 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
                             <p className="font-bold text-sm leading-tight drop-shadow-sm">{mod.nom}</p>
                             <p className="text-xs opacity-90 drop-shadow-sm">{mod.site}</p>
                           </div>
-                          <p className="text-xs opacity-80 mt-1">{available}/{mod.placesTotal} pl.</p>
+                          {isSel && sel ? (
+                            <p className="text-xs font-semibold mt-1 bg-white/30 rounded px-1 inline-block w-fit">S{sel.semaine.semaine}</p>
+                          ) : (
+                            <p className="text-xs opacity-80 mt-1">{available}/{mod.placesTotal} pl.</p>
+                          )}
                         </div>
                         {isSel && (
                           <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center">
@@ -273,12 +240,54 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
         ))}
       </div>
 
-      {/* Encart autre semaine (visible des qu'il y a une selection) */}
-      {selected.length > 0 && (
-        <div className="mt-4 text-center">
-          <p className="text-xs text-gray-400">
-            Après inscription, vous pourrez revenir choisir d'autres modules pour une autre semaine.
-          </p>
+      {/* Popup choix de semaine */}
+      {pickingWeekFor && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setPickingWeekFor(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-fadeIn"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              {pickingWeekFor.nom} ({pickingWeekFor.site})
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Pour quelle semaine souhaitez-vous suivre ce module ?
+            </p>
+
+            <div className="grid gap-2">
+              {semaines.map((sem) => (
+                <button
+                  key={sem.semaine}
+                  onClick={() => assignWeek(sem)}
+                  className="flex items-center justify-between p-3 rounded-lg border-2 border-gray-200
+                             hover:border-cb-blue hover:bg-cb-blue-light transition-all duration-200
+                             cursor-pointer text-left group"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-900 group-hover:text-cb-blue transition-colors">
+                      Semaine {sem.semaine}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(sem.dateDebut)} — {formatDate(sem.dateFin)}
+                    </p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-cb-blue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setPickingWeekFor(null)}
+              className="mt-4 w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            >
+              Annuler
+            </button>
+          </div>
         </div>
       )}
     </div>
