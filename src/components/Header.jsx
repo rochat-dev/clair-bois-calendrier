@@ -18,7 +18,7 @@ export default function Header({ organization }) {
             {organization?.name || 'Fondation Clair-Bois'}
           </h1>
           <p className="text-sm text-gray-500 hidden sm:block">
-            Calendrier des disponibilités de stage
+            Plateforme d'inscription — Stages et modules métiers
           </p>
         </div>
       </div>
