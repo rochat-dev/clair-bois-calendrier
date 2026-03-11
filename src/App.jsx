@@ -20,6 +20,7 @@ import EtablissementPage from './components/EtablissementPage'
 import SecteurCalendar from './components/SecteurCalendar'
 import WeekDetail from './components/WeekDetail'
 import ModulesMetiers from './components/ModulesMetiers'
+import StagesPage from './components/StagesPage'
 
 function App() {
   /* --- Etat du chargement des donnees --- */
@@ -108,6 +109,14 @@ function App() {
     setSelectedWeek(null)
   }
 
+  /** Navigation vers les stages */
+  const goToStages = () => {
+    setCurrentView('stages')
+    setSelectedEtablissement(null)
+    setSelectedSecteur(null)
+    setSelectedWeek(null)
+  }
+
   /* --- Ecran de chargement (spinner) --- */
   if (loading) {
     return (
@@ -146,7 +155,7 @@ function App() {
       <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Ecran 1 : Page d'accueil — choix du parcours */}
         {currentView === 'home' && (
-          <HomePage data={data} onGoToModules={goToModules} />
+          <HomePage data={data} onGoToModules={goToModules} onGoToStages={goToStages} />
         )}
 
         {/* Ecran 2 : Page etablissement — choix du secteur */}
@@ -188,6 +197,14 @@ function App() {
         {currentView === 'modules' && data.modulesMetiers && (
           <ModulesMetiers
             modulesMetiers={data.modulesMetiers}
+            formsUrl={data.formsUrl}
+            onBack={goToHome}
+          />
+        )}
+
+        {/* Ecran 6 : Stages — choix secteur + calendrier dates */}
+        {currentView === 'stages' && (
+          <StagesPage
             formsUrl={data.formsUrl}
             onBack={goToHome}
           />
