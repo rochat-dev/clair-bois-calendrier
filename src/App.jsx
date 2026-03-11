@@ -147,71 +147,29 @@ function App() {
     )
   }
 
-  /* --- Rendu principal : header + ecran actif selon currentView --- */
+  /* --- Page "En travaux" --- */
   return (
     <div className="min-h-screen bg-gray-50">
       <Header organization={data.organization} />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Ecran 1 : Page d'accueil — choix du parcours */}
-        {currentView === 'home' && (
-          <HomePage data={data} onGoToModules={goToModules} onGoToStages={goToStages} />
-        )}
-
-        {/* Ecran 2 : Page etablissement — choix du secteur */}
-        {currentView === 'etablissement' && selectedEtablissement && (
-          <EtablissementPage
-            etablissement={selectedEtablissement}
-            formsUrlNouveauSecteur={data.formsUrlNouveauSecteur}
-            onSelectSecteur={goToSecteur}
-            onBack={goToHome}
-          />
-        )}
-
-        {/* Ecran 3 : Calendrier mensuel du secteur */}
-        {currentView === 'secteur' && selectedEtablissement && selectedSecteur && (
-          <SecteurCalendar
-            etablissement={selectedEtablissement}
-            secteur={selectedSecteur}
-            formsUrlNouveauSecteur={data.formsUrlNouveauSecteur}
-            onSelectWeek={goToWeek}
-            onBackToEtablissement={goBackToEtablissement}
-            onBackToHome={goToHome}
-          />
-        )}
-
-        {/* Ecran 4 : Detail de la semaine + bouton d'inscription */}
-        {currentView === 'week' && selectedEtablissement && selectedSecteur && selectedWeek && (
-          <WeekDetail
-            etablissement={selectedEtablissement}
-            secteur={selectedSecteur}
-            week={selectedWeek}
-            formsUrl={data.formsUrl}
-            onBackToCalendar={goBackToSecteur}
-            onBackToEtablissement={goBackToEtablissement}
-            onBackToHome={goToHome}
-          />
-        )}
-
-        {/* Ecran 5 : Modules metiers — grille semaine type */}
-        {currentView === 'modules' && data.modulesMetiers && (
-          <ModulesMetiers
-            modulesMetiers={data.modulesMetiers}
-            formsUrl={data.formsUrl}
-            onBack={goToHome}
-          />
-        )}
-
-        {/* Ecran 6 : Stages — choix secteur + calendrier dates */}
-        {currentView === 'stages' && (
-          <StagesPage
-            formsUrl={data.formsUrl}
-            onBack={goToHome}
-          />
-        )}
+        <div className="flex flex-col items-center justify-center py-20 animate-fadeIn">
+          <div className="text-8xl mb-6">🏗️</div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Site en travaux</h2>
+          <p className="text-gray-500 text-center max-w-md mb-2">
+            Nous préparons de nouvelles fonctionnalités pour améliorer votre expérience d'inscription.
+          </p>
+          <p className="text-gray-400 text-sm">Revenez bientôt !</p>
+          <div className="mt-8 flex gap-3">
+            <div className="w-3 h-3 rounded-full bg-cb-blue animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-3 h-3 rounded-full bg-cb-green animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-3 h-3 rounded-full bg-cb-blue animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
       </main>
     </div>
   )
+
 }
 
 export default App
