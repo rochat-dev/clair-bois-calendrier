@@ -85,13 +85,12 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
       </button>
 
       {/* En-tete */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
           Modules métiers
         </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Découvrez les modules métiers disponibles. Sélectionnez jusqu'à {maxSelection} modules
-          puis choisissez votre semaine pour vous inscrire.
+        <p className="text-gray-600 max-w-2xl mx-auto text-sm">
+          Sélectionnez jusqu'à {maxSelection} modules puis choisissez votre semaine pour vous inscrire.
         </p>
       </div>
 
