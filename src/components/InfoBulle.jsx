@@ -1,14 +1,24 @@
+/**
+ * InfoBulle.jsx — Tooltip d'information contextuelle.
+ *
+ * Petit cercle "?" qui affiche une bulle d'explication au survol (desktop)
+ * ou au clic (mobile). Utilisee a cote des boutons "Ajouter" pour informer
+ * que l'action est reservee aux referents cadres et protegee par mot de passe.
+ *
+ * Comportement :
+ *  - Desktop : apparait au survol (mouseEnter/mouseLeave)
+ *  - Mobile  : apparait au clic, se ferme au clic en dehors
+ *  - Position : au-dessus de l'icone, centree horizontalement
+ *
+ * @param {ReactNode} props.children - Contenu HTML de la bulle
+ */
 import { useState, useRef, useEffect } from 'react'
 
-/**
- * Infobulle discrète qui s'affiche au survol (desktop) ou au clic (mobile).
- * Utilisée pour expliquer les actions réservées aux référents cadres.
- */
 export default function InfoBulle({ children }) {
   const [visible, setVisible] = useState(false)
   const bulleRef = useRef(null)
 
-  // Fermer au clic en dehors
+  // Fermer la bulle quand l'utilisateur clique en dehors (mobile)
   useEffect(() => {
     if (!visible) return
     const handleClickOutside = (e) => {
@@ -22,6 +32,7 @@ export default function InfoBulle({ children }) {
 
   return (
     <span className="relative inline-flex" ref={bulleRef}>
+      {/* Icone "?" declencheur */}
       <button
         type="button"
         onClick={(e) => {
@@ -40,6 +51,7 @@ export default function InfoBulle({ children }) {
         ?
       </button>
 
+      {/* Bulle d'information (positionnee au-dessus) */}
       {visible && (
         <div
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
@@ -48,7 +60,7 @@ export default function InfoBulle({ children }) {
           role="tooltip"
         >
           {children}
-          {/* Flèche */}
+          {/* Fleche pointant vers le bas */}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
                           border-l-[6px] border-l-transparent
                           border-r-[6px] border-r-transparent

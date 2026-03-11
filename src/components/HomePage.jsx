@@ -1,11 +1,26 @@
+/**
+ * HomePage.jsx — Ecran 1 : Page d'accueil.
+ *
+ * Affiche la liste des etablissements de la fondation sous forme de cartes.
+ * Chaque carte montre :
+ *  - Le nom et l'icone de l'etablissement
+ *  - Sa description
+ *  - Le nombre de secteurs
+ *  - Le nombre total de places disponibles (calcule en dedupliquant les creneaux)
+ *
+ * En bas de la grille, une carte en bordure pointillee permet aux referents
+ * cadres de proposer un nouvel etablissement via Microsoft Forms.
+ *
+ * @param {Object} props.data                    - Donnees completes du planning
+ * @param {Function} props.onSelectEtablissement - Callback quand un etablissement est choisi
+ */
 import { getUniqueCreneaux } from '../utils/helpers'
 import InfoBulle from './InfoBulle'
 
-/** Écran 1 : Page d'accueil avec choix de l'établissement */
-export default function HomePage({ data, onSelectEtablissement }) {
+export default function HomePage({ data, onSelectEtablissement, onGoToModules }) {
   const { organization, etablissements, lastUpdated, formsUrlNouvelEtablissement } = data
 
-  // Formater la date de dernière mise à jour
+  // Formater la date de derniere mise a jour en francais (ex: "7 mars 2026 a 14:30")
   const updateDate = new Date(lastUpdated).toLocaleDateString('fr-CH', {
     day: 'numeric',
     month: 'long',
@@ -16,7 +31,7 @@ export default function HomePage({ data, onSelectEtablissement }) {
 
   return (
     <div className="animate-fadeIn">
-      {/* Introduction */}
+      {/* Introduction du site */}
       <div className="text-center mb-8">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
           Calendrier des disponibilités de stage
@@ -27,14 +42,44 @@ export default function HomePage({ data, onSelectEtablissement }) {
         </p>
       </div>
 
-      {/* Liste des établissements */}
+      {/* Carte Modules Metiers */}
+      {data.modulesMetiers && (
+        <button
+          onClick={onGoToModules}
+          className="w-full bg-gradient-to-r from-cb-blue to-cb-blue/80 rounded-xl p-5 mb-8
+                     text-left text-white hover:shadow-lg transition-all duration-200
+                     focus:outline-none focus:ring-2 focus:ring-cb-blue focus:ring-offset-2
+                     cursor-pointer group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-bold">Modules métiers</h3>
+              <p className="text-white/80 text-sm mt-1">
+                Découvrez les modules métiers disponibles et inscrivez-vous pour une semaine de découverte
+              </p>
+            </div>
+            <svg className="w-6 h-6 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
+      )}
+
+      {/* Titre de la grille */}
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
         Choisissez un établissement
       </h3>
 
+      {/* Grille des cartes etablissements (responsive : 1/2/3 colonnes) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {etablissements.map((etab) => {
-          // Calculer le nombre total de places disponibles (dédupliqué par créneau)
+          // Calculer le total de places disponibles en dedupliquant les creneaux
+          // (un meme creneau peut couvrir plusieurs semaines → eviter de compter double)
           const totalPlaces = etab.secteurs.reduce(
             (sum, s) => sum + getUniqueCreneaux(s.weeks).reduce((wSum, w) => wSum + Math.max(0, w.totalSlots - w.usedSlots), 0),
             0
@@ -50,7 +95,7 @@ export default function HomePage({ data, onSelectEtablissement }) {
                          cursor-pointer group"
               aria-label={`Voir les disponibilités de ${etab.name}`}
             >
-              {/* Icône et nom */}
+              {/* Icone et nom de l'etablissement */}
               <div className="flex items-start gap-3 mb-3">
                 <span className="text-3xl" role="img" aria-hidden="true">
                   {etab.icon}
@@ -65,7 +110,7 @@ export default function HomePage({ data, onSelectEtablissement }) {
                 </div>
               </div>
 
-              {/* Résumé */}
+              {/* Resume : nombre de secteurs + places disponibles avec badge couleur */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                 <span className="text-sm text-gray-500">
                   {etab.secteurs.length} secteur{etab.secteurs.length > 1 ? 's' : ''}
@@ -84,7 +129,9 @@ export default function HomePage({ data, onSelectEtablissement }) {
           )
         })}
 
-        {/* Carte "+" pour ajouter un établissement (référent cadre) */}
+        {/* Carte "Ajouter un etablissement" pour les referents cadres.
+            Bordure pointillee + InfoBulle explicative.
+            Redirige vers le formulaire Microsoft Forms (formsUrlNouvelEtablissement). */}
         <a
           href={formsUrlNouvelEtablissement}
           target="_blank"
@@ -113,7 +160,7 @@ export default function HomePage({ data, onSelectEtablissement }) {
         </a>
       </div>
 
-      {/* Timestamp mise à jour */}
+      {/* Horodatage de la derniere mise a jour (generee par le Flux 3 Power Automate) */}
       <p className="text-center text-sm text-gray-400 mt-8">
         Dernière mise à jour : {updateDate}
       </p>

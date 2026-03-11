@@ -1,3 +1,29 @@
+/**
+ * WeekDetail.jsx — Ecran 4 : Detail d'une semaine avec inscription.
+ *
+ * Affiche le detail complet d'une semaine selectionnee dans le calendrier :
+ *  - Resume global (places disponibles / totales, barre de progression)
+ *  - Informations du secteur et de l'etablissement
+ *  - Bouton d'inscription pointant vers Microsoft Forms (pre-rempli)
+ *
+ * Gestion des creneaux multiples :
+ *  Quand plusieurs creneaux couvrent la meme semaine (agregation par
+ *  aggregateWeekCreneaux dans helpers.js), chaque creneau est affiche
+ *  individuellement avec sa propre barre de progression et son bouton
+ *  d'inscription. Le resume en haut montre les totaux agreges.
+ *
+ * Retrocompatibilite :
+ *  Si `week.creneaux` n'existe pas (ancien format JSON), le composant
+ *  traite `week` comme un creneau unique via `week.creneaux || [week]`.
+ *
+ * @param {Object}   props.etablissement        - L'etablissement parent
+ * @param {Object}   props.secteur              - Le secteur parent
+ * @param {Object}   props.week                 - Donnees de la semaine (aggregees ou simples)
+ * @param {string}   props.formsUrl             - URL de base du formulaire d'inscription
+ * @param {Function} props.onBackToCalendar     - Retour au calendrier du secteur
+ * @param {Function} props.onBackToEtablissement - Retour au niveau etablissement
+ * @param {Function} props.onBackToHome         - Retour a l'accueil
+ */
 import Breadcrumb from './Breadcrumb'
 import {
   formatDate,
@@ -7,7 +33,18 @@ import {
   computeStatus,
 } from '../utils/helpers'
 
-/** Affiche la barre de progression + places pour un créneau */
+/**
+ * ProgressBar — Composant interne de barre de progression.
+ *
+ * Affiche visuellement le ratio de places disponibles sous forme de :
+ *  - Un compteur grand format (ex: "5 / 8 places")
+ *  - Une barre de progression coloree selon le statut
+ *  - Un resume textuel (occupees / libres)
+ *
+ * @param {number} props.totalSlots - Nombre total de places du creneau
+ * @param {number} props.usedSlots  - Nombre de places occupees
+ * @param {string} props.status     - Statut couleur ('available' | 'almost_full' | 'full')
+ */
 function ProgressBar({ totalSlots, usedSlots, status }) {
   const available = totalSlots - usedSlots
   const percentage = totalSlots > 0 ? (available / totalSlots) * 100 : 0
@@ -44,7 +81,6 @@ function ProgressBar({ totalSlots, usedSlots, status }) {
   )
 }
 
-/** Écran 4 : Détail d'une semaine avec possibilité d'inscription */
 export default function WeekDetail({
   etablissement,
   secteur,
@@ -54,17 +90,21 @@ export default function WeekDetail({
   onBackToEtablissement,
   onBackToHome,
 }) {
-  // Rétrocompatibilité : si pas de creneaux, traiter week comme un créneau unique
+  // Retrocompatibilite : si week.creneaux n'existe pas (ancien format),
+  // on enveloppe week dans un tableau pour le traiter comme un creneau unique
   const creneaux = week.creneaux || [week]
   const isMulti = creneaux.length > 1
 
+  // Nombre total de places disponibles (agreges si multi-creneaux)
   const available = week.totalSlots - week.usedSlots
 
-  // URL inscription pour créneau unique (rétrocompatibilité)
+  // URL d'inscription pre-remplie (uniquement pour un creneau unique ;
+  // en mode multi-creneaux, chaque creneau genere sa propre URL plus bas)
   const inscriptionUrl = !isMulti
     ? buildFormsUrl(formsUrl, etablissement.name, secteur.name, creneaux[0].startDate)
     : null
 
+  /* Fil d'Ariane : Accueil > Etablissement > Secteur > Semaine N */
   const breadcrumbItems = [
     { label: 'Accueil', onClick: onBackToHome },
     { label: etablissement.name, onClick: onBackToEtablissement },
@@ -91,7 +131,7 @@ export default function WeekDetail({
 
       {/* Carte détail semaine */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden max-w-lg mx-auto">
-        {/* En-tête avec statut agrégé */}
+        {/* En-tete coloree selon le statut global de la semaine */}
         <div className={`px-6 py-4 ${getStatusColor(week.status)}`}>
           <h2 className="text-xl font-bold">
             Semaine {week.weekNumber}
@@ -106,7 +146,7 @@ export default function WeekDetail({
         </div>
 
         <div className="p-6">
-          {/* Statut agrégé */}
+          {/* Badge de statut global (vert / orange / rouge) */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-600">Disponibilité</span>
@@ -118,7 +158,7 @@ export default function WeekDetail({
             </div>
           </div>
 
-          {/* Résumé global */}
+          {/* Barre de progression globale (totaux agreges) */}
           <div className="mb-6">
             <ProgressBar
               totalSlots={week.totalSlots}
@@ -127,7 +167,7 @@ export default function WeekDetail({
             />
           </div>
 
-          {/* Infos secteur */}
+          {/* Encart recapitulatif : etablissement + secteur */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600">
               <span className="font-medium">Établissement :</span> {etablissement.name}
@@ -138,10 +178,11 @@ export default function WeekDetail({
             <p className="text-sm text-gray-500 mt-1">{secteur.description}</p>
           </div>
 
-          {/* Créneau unique : affichage identique à l'ancien */}
+          {/* Mode creneau unique : bouton d'inscription ou message "complet" */}
           {!isMulti && (
             <>
               {available > 0 ? (
+                /* Lien vers le formulaire Forms pre-rempli (etablissement, secteur, date) */
                 <a
                   href={inscriptionUrl}
                   target="_blank"
@@ -163,7 +204,8 @@ export default function WeekDetail({
             </>
           )}
 
-          {/* Plusieurs créneaux : liste détaillée */}
+          {/* Mode multi-creneaux : chaque creneau est affiche individuellement
+              avec sa propre barre de progression et son bouton d'inscription */}
           {isMulti && (
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-700 border-b border-gray-200 pb-2">
@@ -171,7 +213,9 @@ export default function WeekDetail({
               </h3>
               {creneaux.map((c, i) => {
                 const cAvailable = c.totalSlots - c.usedSlots
+                // Recalculer le statut individuel de chaque creneau
                 const cStatus = computeStatus(c.totalSlots, c.usedSlots)
+                // Generer l'URL d'inscription specifique a ce creneau (date pre-remplie)
                 const cUrl = buildFormsUrl(formsUrl, etablissement.name, secteur.name, c.startDate)
 
                 return (

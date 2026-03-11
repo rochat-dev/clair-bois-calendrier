@@ -1,4 +1,6 @@
-# Clair-Bois Calendrier — Contexte Projet
+# Clair-Bois Calendrier — Frontend
+
+> Ce sous-projet fait partie de `clair-bois-projet/`. Voir `../CLAUDE.md` pour la vue d'ensemble et le plan d'évolution.
 
 Toujours communiquer en français avec l'utilisateur.
 

@@ -1,3 +1,17 @@
+/**
+ * App.jsx — Composant racine de l'application Calendrier Clair-Bois.
+ *
+ * Responsabilites :
+ *  1. Charger le fichier planning.json au demarrage (une seule fois)
+ *  2. Transformer les donnees brutes (format Power Automate) en structure hierarchique
+ *  3. Gerer la navigation entre les 4 ecrans via un systeme d'etat simple
+ *
+ * Navigation (sans React Router, geree par useState) :
+ *  - "home"          → HomePage           : choix de l'etablissement
+ *  - "etablissement" → EtablissementPage  : choix du secteur
+ *  - "secteur"       → SecteurCalendar    : calendrier mensuel
+ *  - "week"          → WeekDetail         : detail d'une semaine + inscription
+ */
 import { useState, useEffect } from 'react'
 import { transformPlanningData } from './utils/helpers'
 import Header from './components/Header'
@@ -5,23 +19,26 @@ import HomePage from './components/HomePage'
 import EtablissementPage from './components/EtablissementPage'
 import SecteurCalendar from './components/SecteurCalendar'
 import WeekDetail from './components/WeekDetail'
+import ModulesMetiers from './components/ModulesMetiers'
 
-/**
- * Composant principal de l'application.
- * Gère le chargement du JSON et la navigation entre les 4 écrans.
- */
 function App() {
+  /* --- Etat du chargement des donnees --- */
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Navigation : quel écran afficher
+  /* --- Etat de la navigation entre ecrans --- */
   const [currentView, setCurrentView] = useState('home')
   const [selectedEtablissement, setSelectedEtablissement] = useState(null)
   const [selectedSecteur, setSelectedSecteur] = useState(null)
   const [selectedWeek, setSelectedWeek] = useState(null)
 
-  // Charger le planning.json UNE SEULE FOIS au démarrage
+  /**
+   * Chargement initial de planning.json.
+   * Le fichier est genere automatiquement par le Flux 3 Power Automate
+   * et pousse sur GitHub. Le cache est desactive pour toujours obtenir
+   * la version la plus recente.
+   */
   useEffect(() => {
     fetch(import.meta.env.BASE_URL + 'planning.json', { cache: 'no-cache' })
       .then((res) => {
@@ -29,6 +46,7 @@ function App() {
         return res.json()
       })
       .then((json) => {
+        // Transforme le format plat (Power Automate) en hierarchie etablissements > secteurs > semaines
         setData(transformPlanningData(json))
         setLoading(false)
       })
@@ -38,7 +56,9 @@ function App() {
       })
   }, [])
 
-  // Fonctions de navigation
+  /* --- Fonctions de navigation --- */
+
+  /** Retour a la page d'accueil (reinitialise toutes les selections) */
   const goToHome = () => {
     setCurrentView('home')
     setSelectedEtablissement(null)
@@ -46,6 +66,7 @@ function App() {
     setSelectedWeek(null)
   }
 
+  /** Selection d'un etablissement → affiche ses secteurs */
   const goToEtablissement = (etab) => {
     setSelectedEtablissement(etab)
     setSelectedSecteur(null)
@@ -53,29 +74,41 @@ function App() {
     setCurrentView('etablissement')
   }
 
+  /** Selection d'un secteur → affiche le calendrier mensuel */
   const goToSecteur = (secteur) => {
     setSelectedSecteur(secteur)
     setSelectedWeek(null)
     setCurrentView('secteur')
   }
 
+  /** Selection d'une semaine → affiche le detail avec bouton d'inscription */
   const goToWeek = (week) => {
     setSelectedWeek(week)
     setCurrentView('week')
   }
 
+  /** Retour au niveau etablissement (depuis le calendrier) */
   const goBackToEtablissement = () => {
     setSelectedSecteur(null)
     setSelectedWeek(null)
     setCurrentView('etablissement')
   }
 
+  /** Retour au calendrier (depuis le detail semaine) */
   const goBackToSecteur = () => {
     setSelectedWeek(null)
     setCurrentView('secteur')
   }
 
-  // Écran de chargement
+  /** Navigation vers les modules metiers */
+  const goToModules = () => {
+    setCurrentView('modules')
+    setSelectedEtablissement(null)
+    setSelectedSecteur(null)
+    setSelectedWeek(null)
+  }
+
+  /* --- Ecran de chargement (spinner) --- */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -87,7 +120,7 @@ function App() {
     )
   }
 
-  // Écran d'erreur
+  /* --- Ecran d'erreur (si planning.json inaccessible) --- */
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -105,15 +138,18 @@ function App() {
     )
   }
 
+  /* --- Rendu principal : header + ecran actif selon currentView --- */
   return (
     <div className="min-h-screen bg-gray-50">
       <Header organization={data.organization} />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Ecran 1 : Page d'accueil — choix de l'etablissement */}
         {currentView === 'home' && (
-          <HomePage data={data} onSelectEtablissement={goToEtablissement} />
+          <HomePage data={data} onSelectEtablissement={goToEtablissement} onGoToModules={goToModules} />
         )}
 
+        {/* Ecran 2 : Page etablissement — choix du secteur */}
         {currentView === 'etablissement' && selectedEtablissement && (
           <EtablissementPage
             etablissement={selectedEtablissement}
@@ -123,6 +159,7 @@ function App() {
           />
         )}
 
+        {/* Ecran 3 : Calendrier mensuel du secteur */}
         {currentView === 'secteur' && selectedEtablissement && selectedSecteur && (
           <SecteurCalendar
             etablissement={selectedEtablissement}
@@ -134,6 +171,7 @@ function App() {
           />
         )}
 
+        {/* Ecran 4 : Detail de la semaine + bouton d'inscription */}
         {currentView === 'week' && selectedEtablissement && selectedSecteur && selectedWeek && (
           <WeekDetail
             etablissement={selectedEtablissement}
@@ -143,6 +181,15 @@ function App() {
             onBackToCalendar={goBackToSecteur}
             onBackToEtablissement={goBackToEtablissement}
             onBackToHome={goToHome}
+          />
+        )}
+
+        {/* Ecran 5 : Modules metiers — grille semaine type */}
+        {currentView === 'modules' && data.modulesMetiers && (
+          <ModulesMetiers
+            modulesMetiers={data.modulesMetiers}
+            formsUrl={data.formsUrl}
+            onBack={goToHome}
           />
         )}
       </main>

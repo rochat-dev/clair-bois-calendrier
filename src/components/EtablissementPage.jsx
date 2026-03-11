@@ -1,14 +1,32 @@
+/**
+ * EtablissementPage.jsx — Ecran 2 : Page d'un etablissement.
+ *
+ * Affiche les secteurs de stage disponibles dans l'etablissement selectionne.
+ * Chaque carte de secteur montre :
+ *  - Le nom du secteur
+ *  - Le ratio places disponibles / places totales (badge couleur)
+ *  - Une barre de progression visuelle
+ *  - Un statut global (vert = >50%, orange = 1-50%, rouge = complet)
+ *
+ * Comprend aussi un bouton "Ajouter un secteur" (referent cadre) qui ouvre
+ * le formulaire Microsoft Forms avec le nom de l'etablissement pre-rempli.
+ *
+ * @param {Object}   props.etablissement        - L'etablissement selectionne
+ * @param {string}   props.formsUrlNouveauSecteur - URL du formulaire "Gestion des creneaux"
+ * @param {Function} props.onSelectSecteur      - Callback quand un secteur est choisi
+ * @param {Function} props.onBack               - Callback pour retourner a l'accueil
+ */
 import Breadcrumb from './Breadcrumb'
 import InfoBulle from './InfoBulle'
 import { getStatusColor, getUniqueCreneaux } from '../utils/helpers'
 
-/** Écran 2 : Page d'un établissement avec choix du secteur */
 export default function EtablissementPage({
   etablissement,
   formsUrlNouveauSecteur,
   onSelectSecteur,
   onBack,
 }) {
+  /* Fil d'Ariane : Accueil > Nom de l'etablissement */
   const breadcrumbItems = [
     { label: 'Accueil', onClick: onBack },
     { label: etablissement.name },
@@ -31,7 +49,7 @@ export default function EtablissementPage({
         Retour
       </button>
 
-      {/* Titre établissement */}
+      {/* En-tete de l'etablissement (icone + nom + description) */}
       <div className="flex items-center gap-3 mb-6">
         <span className="text-4xl" role="img" aria-hidden="true">
           {etablissement.icon}
@@ -42,18 +60,20 @@ export default function EtablissementPage({
         </div>
       </div>
 
-      {/* Liste des secteurs */}
+      {/* Titre de la grille des secteurs */}
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
         Choisissez un secteur de stage
       </h3>
 
+      {/* Grille des cartes secteurs (responsive : 1/2 colonnes) */}
       <div className="grid gap-4 sm:grid-cols-2">
         {etablissement.secteurs.map((secteur) => {
+          // Dedupliquer les creneaux pour un comptage correct des places
           const creneaux = getUniqueCreneaux(secteur.weeks)
           const availablePlaces = creneaux.reduce((sum, w) => sum + Math.max(0, w.totalSlots - w.usedSlots), 0)
           const totalPlaces = creneaux.reduce((sum, w) => sum + w.totalSlots, 0)
 
-          // Déterminer le statut global du secteur
+          // Determiner le statut global du secteur pour la couleur
           let globalStatus = 'full'
           if (totalPlaces > 0 && availablePlaces / totalPlaces > 0.5) globalStatus = 'available'
           else if (availablePlaces > 0) globalStatus = 'almost_full'
@@ -72,6 +92,7 @@ export default function EtablissementPage({
                 <h4 className="font-semibold text-gray-900 group-hover:text-cb-blue transition-colors">
                   {secteur.name}
                 </h4>
+                {/* Badge avec ratio de places et couleur du statut */}
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor(globalStatus)}`}
                 >
@@ -81,7 +102,7 @@ export default function EtablissementPage({
 
               <p className="text-sm text-gray-500 mb-3">{secteur.description}</p>
 
-              {/* Barre de progression */}
+              {/* Barre de progression visuelle (largeur proportionnelle aux places disponibles) */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className={`h-2 rounded-full transition-all duration-500 ${
@@ -103,7 +124,9 @@ export default function EtablissementPage({
           )
         })}
 
-        {/* Carte "+" pour ajouter un secteur (référent cadre) */}
+        {/* Carte "Ajouter un secteur" pour les referents cadres.
+            L'URL du formulaire est enrichie du nom de l'etablissement en parametre
+            (ID Forms rb1c6311a...) pour pre-remplir le champ. */}
         <a
           href={`${formsUrlNouveauSecteur}&rb1c6311a61044eb184fa3270fd065e32=${encodeURIComponent(etablissement.name)}`}
           target="_blank"

@@ -1,3 +1,29 @@
+/**
+ * SecteurCalendar.jsx — Ecran 3 : Calendrier mensuel d'un secteur.
+ *
+ * Affiche un calendrier en grille avec navigation mois par mois.
+ * Structure de la grille : 8 colonnes (Sem. + Lun a Dim).
+ *
+ * Code couleur des semaines :
+ *  - Vert   : >50% des places disponibles
+ *  - Orange  : 1-50% des places
+ *  - Rouge   : complet
+ *  - Gris    : pas de creneau cette semaine
+ *
+ * Gestion des creneaux chevauchants :
+ *  Quand plusieurs creneaux couvrent la meme semaine, le numero de semaine
+ *  affiche le nombre entre parentheses (ex: "S13 (2)"). Les creneaux sont
+ *  agreges par aggregateWeekCreneaux() dans helpers.js.
+ *
+ * Au clic sur une semaine coloree, l'utilisateur accede au detail (WeekDetail).
+ *
+ * @param {Object}   props.etablissement        - L'etablissement parent
+ * @param {Object}   props.secteur              - Le secteur selectionne
+ * @param {string}   props.formsUrlNouveauSecteur - URL du formulaire "Gestion des creneaux"
+ * @param {Function} props.onSelectWeek         - Callback quand une semaine est cliquee
+ * @param {Function} props.onBackToEtablissement - Retour au niveau etablissement
+ * @param {Function} props.onBackToHome         - Retour a l'accueil
+ */
 import { useState } from 'react'
 import Breadcrumb from './Breadcrumb'
 import InfoBulle from './InfoBulle'
@@ -11,7 +37,6 @@ import {
   aggregateWeekCreneaux,
 } from '../utils/helpers'
 
-/** Écran 3 : Calendrier mensuel d'un secteur */
 export default function SecteurCalendar({
   etablissement,
   secteur,
@@ -20,18 +45,19 @@ export default function SecteurCalendar({
   onBackToEtablissement,
   onBackToHome,
 }) {
-  // Initialiser au mois courant
+  // Initialiser le calendrier au mois courant
   const now = new Date()
   const [currentMonth, setCurrentMonth] = useState(now.getMonth())
   const [currentYear, setCurrentYear] = useState(now.getFullYear())
 
+  /* Fil d'Ariane : Accueil > Etablissement > Secteur */
   const breadcrumbItems = [
     { label: 'Accueil', onClick: onBackToHome },
     { label: etablissement.name, onClick: onBackToEtablissement },
     { label: secteur.name },
   ]
 
-  // Navigation entre les mois
+  /* --- Navigation entre les mois --- */
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11)
@@ -50,14 +76,15 @@ export default function SecteurCalendar({
     }
   }
 
-  // Créer un index des semaines agrégé (gère les créneaux chevauchants)
+  // Index des semaines agregeant les creneaux chevauchants.
+  // Cle : "annee-numSemaine" (ex: "2026-13"), Valeur : { creneaux[], totalSlots, ... }
   const weekIndex = aggregateWeekCreneaux(secteur.weeks)
 
-  // Générer les jours et semaines du calendrier
+  // Generer la grille du calendrier pour le mois affiche
   const calendarDays = getCalendarDays(currentMonth, currentYear)
   const calendarWeeks = groupByWeeks(calendarDays)
 
-  // Jours de la semaine (lundi à dimanche)
+  // En-tetes des jours (semaine commencant le lundi)
   const joursSemaine = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
   return (
@@ -77,14 +104,15 @@ export default function SecteurCalendar({
         Retour
       </button>
 
-      {/* Titre */}
+      {/* Titre du secteur */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{secteur.name}</h2>
         <p className="text-gray-500">{secteur.description}</p>
       </div>
 
-      {/* Navigation du mois */}
+      {/* Carte du calendrier */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Barre de navigation du mois (< mois annee >) */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
           <button
             onClick={goToPreviousMonth}
@@ -111,9 +139,9 @@ export default function SecteurCalendar({
           </button>
         </div>
 
-        {/* Grille calendrier */}
+        {/* Grille du calendrier (8 colonnes : Sem + 7 jours) */}
         <div className="p-2 md:p-4">
-          {/* En-têtes jours */}
+          {/* En-tetes des jours de la semaine */}
           <div className="grid grid-cols-8 gap-1 mb-1">
             <div className="text-xs font-medium text-gray-400 text-center py-1">Sem.</div>
             {joursSemaine.map((jour) => (
@@ -123,23 +151,26 @@ export default function SecteurCalendar({
             ))}
           </div>
 
-          {/* Semaines */}
+          {/* Lignes du calendrier (une par semaine) */}
           {calendarWeeks.map((week, weekIdx) => {
-            // Trouver le premier jour réel de la semaine pour déterminer le numéro
+            // Trouver le premier jour reel de cette semaine pour determiner le numero ISO
             const firstRealDay = week.find((d) => d !== null)
             if (!firstRealDay) return null
 
             const weekNum = getISOWeekNumber(firstRealDay)
+
+            // Gerer le cas ou la semaine ISO chevauche le changement d'annee
             const weekYear = firstRealDay.getMonth() === 0 && weekNum > 50
               ? firstRealDay.getFullYear() - 1
               : firstRealDay.getMonth() === 11 && weekNum === 1
                 ? firstRealDay.getFullYear() + 1
                 : firstRealDay.getFullYear()
 
+            // Chercher les donnees de disponibilite pour cette semaine
             const weekData = weekIndex[`${weekYear}-${weekNum}`]
             const hasData = !!weekData
 
-            // Padder la semaine à 7 jours
+            // Completer la semaine a 7 jours (cases vides en fin de mois)
             const paddedWeek = [...week]
             while (paddedWeek.length < 7) paddedWeek.push(null)
 
@@ -166,7 +197,7 @@ export default function SecteurCalendar({
                     : undefined
                 }
               >
-                {/* Numéro de semaine */}
+                {/* Colonne "Sem." : numero de semaine ISO + nombre de creneaux si >1 */}
                 <div
                   className={`text-xs text-center py-2 rounded-l-lg font-medium ${
                     hasData ? getStatusColor(weekData.status) : 'text-gray-300'
@@ -175,7 +206,7 @@ export default function SecteurCalendar({
                   S{weekNum}{hasData && weekData.creneaux.length > 1 ? ` (${weekData.creneaux.length})` : ''}
                 </div>
 
-                {/* Jours */}
+                {/* Cellules des 7 jours de la semaine */}
                 {paddedWeek.map((day, dayIdx) => (
                   <div
                     key={dayIdx}
@@ -188,6 +219,7 @@ export default function SecteurCalendar({
                           ? getStatusBgLight(weekData.status) + ' border'
                           : 'text-gray-400'
                     } ${
+                      // Marqueur "aujourd'hui" : cercle bleu autour du jour actuel
                       day && day.toDateString() === new Date().toDateString()
                         ? 'font-bold ring-2 ring-cb-blue rounded'
                         : ''
@@ -201,7 +233,7 @@ export default function SecteurCalendar({
           })}
         </div>
 
-        {/* Légende */}
+        {/* Legende du code couleur */}
         <div className="flex flex-wrap gap-4 px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-full bg-cb-green" />
@@ -222,7 +254,8 @@ export default function SecteurCalendar({
         </div>
       </div>
 
-      {/* Ajouter un créneau (référent cadre) */}
+      {/* Bouton "Ajouter un creneau" pour les referents cadres.
+          L'URL pre-remplit l'etablissement (rb1c6311a...) et le secteur (r69f25417...) */}
       {formsUrlNouveauSecteur && (
         <div className="mt-4 text-center">
           <a

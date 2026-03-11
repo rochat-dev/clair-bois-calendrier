@@ -1,8 +1,25 @@
 /**
- * Fonctions utilitaires pour le calendrier Clair-Bois
+ * helpers.js — Fonctions utilitaires du calendrier Clair-Bois.
+ *
+ * Ce fichier contient toute la logique metier du frontend :
+ *  - Transformation des donnees Power Automate → structure React
+ *  - Calcul des statuts de disponibilite (vert/orange/rouge)
+ *  - Agregation des creneaux chevauchants par semaine
+ *  - Generation des URLs d'inscription pre-remplies (Microsoft Forms)
+ *  - Calculs de dates ISO (semaines, calendrier mensuel)
  */
 
-/** Retourne la classe CSS de couleur selon le statut de disponibilité */
+// ===================================================================
+// STATUTS DE DISPONIBILITE
+// ===================================================================
+
+/**
+ * Retourne les classes CSS Tailwind pour le fond + texte selon le statut.
+ * Utilise dans les badges, en-tetes et indicateurs visuels.
+ *
+ * @param {'available'|'almost_full'|'full'|string} status
+ * @returns {string} Classes Tailwind (ex: "bg-cb-green text-white")
+ */
 export function getStatusColor(status) {
   switch (status) {
     case 'available':
@@ -16,7 +33,10 @@ export function getStatusColor(status) {
   }
 }
 
-/** Retourne la couleur de fond légère pour les cartes */
+/**
+ * Retourne les classes CSS pour un fond leger (cartes du calendrier).
+ * Fond pastel + bordure coloree selon le statut.
+ */
 export function getStatusBgLight(status) {
   switch (status) {
     case 'available':
@@ -30,7 +50,7 @@ export function getStatusBgLight(status) {
   }
 }
 
-/** Retourne le label français du statut */
+/** Retourne le libelle francais du statut de disponibilite */
 export function getStatusLabel(status) {
   switch (status) {
     case 'available':
@@ -44,7 +64,14 @@ export function getStatusLabel(status) {
   }
 }
 
-/** Calcule le statut automatiquement à partir des places */
+/**
+ * Calcule le statut de disponibilite a partir du nombre de places.
+ * Regle : >50% libre = vert, 1-50% = orange, 0 = rouge.
+ *
+ * @param {number} totalSlots  - Nombre total de places du creneau
+ * @param {number} usedSlots   - Nombre de places deja occupees
+ * @returns {'available'|'almost_full'|'full'}
+ */
 export function computeStatus(totalSlots, usedSlots) {
   const available = totalSlots - usedSlots
   if (available <= 0) return 'full'
@@ -52,7 +79,11 @@ export function computeStatus(totalSlots, usedSlots) {
   return 'almost_full'
 }
 
-/** Formate une date ISO en format lisible français */
+// ===================================================================
+// FORMATAGE DES DATES
+// ===================================================================
+
+/** Formate une date ISO (ex: "2026-03-01") en francais : "1 mars 2026" */
 export function formatDate(dateStr) {
   const date = new Date(dateStr + 'T00:00:00')
   return date.toLocaleDateString('fr-CH', {
@@ -62,7 +93,7 @@ export function formatDate(dateStr) {
   })
 }
 
-/** Formate une date ISO en format court */
+/** Formate une date ISO en format court : "1 mars" (sans l'annee) */
 export function formatDateShort(dateStr) {
   const date = new Date(dateStr + 'T00:00:00')
   return date.toLocaleDateString('fr-CH', {
@@ -71,18 +102,27 @@ export function formatDateShort(dateStr) {
   })
 }
 
-/** Retourne le nom du mois en français */
+/** Retourne le nom du mois en francais : "mars 2026" */
 export function getMonthName(month, year) {
   const date = new Date(year, month, 1)
   return date.toLocaleDateString('fr-CH', { month: 'long', year: 'numeric' })
 }
 
-/** Compte les semaines disponibles dans un secteur */
+// ===================================================================
+// CALCULS DE PLACES ET DEDUPLICATION
+// ===================================================================
+
+/** Compte le nombre de semaines non completes dans un secteur */
 export function countAvailableWeeks(secteur) {
   return secteur.weeks.filter((w) => w.status !== 'full').length
 }
 
-/** Déduplique les semaines pour obtenir les créneaux uniques d'un secteur */
+/**
+ * Deduplique les semaines par creneau unique (startDate + endDate).
+ * Un meme creneau couvrant plusieurs semaines genere des doublons
+ * dans le tableau weeks[] — cette fonction les elimine pour le comptage
+ * correct des places sur la page etablissement.
+ */
 export function getUniqueCreneaux(weeks) {
   const seen = new Map()
   for (const w of weeks) {
@@ -94,7 +134,23 @@ export function getUniqueCreneaux(weeks) {
   return Array.from(seen.values())
 }
 
-/** Agrège les semaines par year-weekNumber pour gérer les créneaux chevauchants */
+/**
+ * Agrege les semaines par (annee, numero de semaine ISO) pour gerer
+ * les creneaux chevauchants. Quand plusieurs creneaux couvrent la meme
+ * semaine dans un secteur, cette fonction les regroupe.
+ *
+ * Resultat : un objet indexe par "annee-numSemaine", contenant :
+ *  - creneaux[]  : liste des creneaux individuels (dedupliques)
+ *  - totalSlots   : somme des places de tous les creneaux
+ *  - usedSlots    : somme des places utilisees
+ *  - status       : statut agrege (vert/orange/rouge)
+ *
+ * Utilise par SecteurCalendar pour afficher "S13 (2)" quand
+ * 2 creneaux se chevauchent sur la semaine 13.
+ *
+ * @param {Array} weeks - Tableau de semaines du secteur
+ * @returns {Object} Index { "2026-13": { weekNumber, creneaux[], totalSlots, ... } }
+ */
 export function aggregateWeekCreneaux(weeks) {
   const map = {}
   for (const w of weeks) {
@@ -109,7 +165,7 @@ export function aggregateWeekCreneaux(weeks) {
         status: 'unknown',
       }
     }
-    // Dédupliquer par startDate+endDate (même créneau sur plusieurs semaines)
+    // Eviter les doublons : meme creneau qui couvre cette semaine
     const already = map[key].creneaux.some(
       (c) => c.startDate === w.startDate && c.endDate === w.endDate
     )
@@ -119,20 +175,43 @@ export function aggregateWeekCreneaux(weeks) {
       map[key].usedSlots += w.usedSlots
     }
   }
-  // Calculer le statut agrégé
+  // Calculer le statut agrege de chaque semaine
   for (const key of Object.keys(map)) {
     map[key].status = computeStatus(map[key].totalSlots, map[key].usedSlots)
   }
   return map
 }
 
-/** Génère l'URL d'inscription avec paramètres pré-remplis (IDs Forms réels) */
+// ===================================================================
+// URL D'INSCRIPTION PRE-REMPLIE (MICROSOFT FORMS)
+// ===================================================================
+
+/**
+ * Construit l'URL du formulaire d'inscription avec les champs pre-remplis.
+ * Les IDs correspondent aux vrais champs du Microsoft Forms d'inscription :
+ *  - r2876f0c9... → Etablissement souhaite
+ *  - r1faa50a6... → Secteur souhaite
+ *  - r50efe780... → Date de debut souhaitee
+ *
+ * @param {string} baseUrl       - URL de base du formulaire Forms
+ * @param {string} etablissement - Nom de l'etablissement
+ * @param {string} secteur       - Nom du secteur
+ * @param {string} startDate     - Date de debut (format ISO)
+ * @returns {string} URL complete avec parametres encodes
+ */
 export function buildFormsUrl(baseUrl, etablissement, secteur, startDate) {
   const e = encodeURIComponent
   return `${baseUrl}?r2876f0c952f44887946296b4c95367a3=${e(etablissement)}&r1faa50a65150406b95d3a62e45550e40=${e(secteur)}&r50efe78018854247bf6e734db7188d70=${e(startDate)}`
 }
 
-/** Retourne le numéro ISO de la semaine pour une date donnée */
+// ===================================================================
+// CALCULS DE DATES ISO
+// ===================================================================
+
+/**
+ * Retourne le numero de semaine ISO 8601 pour une date donnee.
+ * La semaine 1 est celle qui contient le premier jeudi de l'annee.
+ */
 export function getISOWeekNumber(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
@@ -141,7 +220,7 @@ export function getISOWeekNumber(date) {
   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7)
 }
 
-/** Retourne la date du lundi d'une semaine ISO */
+/** Retourne la date du lundi d'une semaine ISO donnee */
 export function getMondayOfWeek(weekNumber, year) {
   const jan4 = new Date(year, 0, 4)
   const dayOfWeek = jan4.getDay() || 7
@@ -150,23 +229,31 @@ export function getMondayOfWeek(weekNumber, year) {
   return monday
 }
 
-/** Génère les jours d'un mois pour l'affichage en grille calendrier */
+// ===================================================================
+// GENERATION DE LA GRILLE CALENDRIER
+// ===================================================================
+
+/**
+ * Genere les jours d'un mois pour l'affichage en grille calendrier.
+ * Retourne un tableau de Date ou null (jours vides avant le 1er du mois).
+ * La semaine commence le lundi (standard europeen).
+ */
 export function getCalendarDays(month, year) {
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
 
-  // Jour de la semaine du premier jour (lundi = 0)
+  // Decalage pour que lundi = 0 (au lieu de dimanche = 0 en JS)
   let startDow = firstDay.getDay() - 1
   if (startDow < 0) startDow = 6
 
   const days = []
 
-  // Jours vides avant le premier du mois
+  // Cases vides avant le premier jour du mois
   for (let i = 0; i < startDow; i++) {
     days.push(null)
   }
 
-  // Jours du mois
+  // Jours effectifs du mois
   for (let d = 1; d <= lastDay.getDate(); d++) {
     days.push(new Date(year, month, d))
   }
@@ -174,7 +261,7 @@ export function getCalendarDays(month, year) {
   return days
 }
 
-/** Regroupe les jours du calendrier en semaines */
+/** Decoupe un tableau de jours en sous-tableaux de 7 (semaines) */
 export function groupByWeeks(calendarDays) {
   const weeks = []
   for (let i = 0; i < calendarDays.length; i += 7) {
@@ -183,7 +270,11 @@ export function groupByWeeks(calendarDays) {
   return weeks
 }
 
-/** Génère un slug URL-friendly à partir d'un nom */
+// ===================================================================
+// TRANSFORMATION DES DONNEES POWER AUTOMATE → REACT
+// ===================================================================
+
+/** Genere un identifiant URL-friendly a partir d'un nom (ex: "Ateliers de Pinchat" → "ateliers-de-pinchat") */
 function slugify(str) {
   return str
     .toLowerCase()
@@ -194,16 +285,33 @@ function slugify(str) {
 }
 
 /**
- * Transforme le format plat (Power Automate) en format hiérarchique (composants React).
- * Si le JSON contient déjà `etablissements`, il est retourné tel quel (rétrocompatibilité).
+ * Transforme le format plat genere par Power Automate (Flux 3) en
+ * structure hierarchique utilisee par les composants React.
+ *
+ * Format d'entree (Power Automate) :
+ *   { creneaux: [{ etablissement, secteur, dateDebut, dateFin, placesTotal, placesUtilisees }] }
+ *
+ * Format de sortie (React) :
+ *   { etablissements: [{ name, secteurs: [{ name, weeks: [{ weekNumber, totalSlots, ... }] }] }] }
+ *
+ * Pour chaque creneau, la fonction genere une entree par semaine ISO couverte
+ * (un creneau du 1er au 14 mars = entrees pour S10, S11).
+ *
+ * Retrocompatibilite : si le JSON contient deja "etablissements", il est retourne tel quel.
+ *
+ * @param {Object} flat - Donnees brutes depuis planning.json
+ * @returns {Object} Donnees structurees pour les composants React
  */
 export function transformPlanningData(flat) {
+  // Retrocompatibilite avec l'ancien format (mock de developpement)
   if (flat.etablissements) return flat
 
   const { lastUpdated, formsUrl, formsUrlNouvelEtablissement, formsUrlNouveauSecteur, creneaux } = flat
 
+  // Construire la hierarchie etablissements > secteurs
   const etabMap = {}
   for (const c of creneaux) {
+    // Creer l'etablissement s'il n'existe pas encore
     if (!etabMap[c.etablissement]) {
       etabMap[c.etablissement] = {
         id: slugify(c.etablissement),
@@ -213,7 +321,7 @@ export function transformPlanningData(flat) {
         secteursMap: {},
       }
     } else {
-      // Mettre à jour description/icon si pas encore défini
+      // Completer description/icon si fournis par un autre creneau
       if (c.description && !etabMap[c.etablissement].description) {
         etabMap[c.etablissement].description = c.description
       }
@@ -221,7 +329,10 @@ export function transformPlanningData(flat) {
         etabMap[c.etablissement].icon = c.icon
       }
     }
+
     const etab = etabMap[c.etablissement]
+
+    // Creer le secteur s'il n'existe pas encore
     if (!etab.secteursMap[c.secteur]) {
       etab.secteursMap[c.secteur] = {
         id: slugify(c.secteur),
@@ -231,20 +342,22 @@ export function transformPlanningData(flat) {
       }
     }
 
-    // Itérer sur toutes les semaines couvertes par le créneau
+    // Generer une entree par semaine ISO couverte par ce creneau
     const startD = new Date(c.dateDebut + 'T00:00:00')
     const endD = new Date(c.dateFin + 'T00:00:00')
     let cursor = new Date(startD)
 
     while (cursor <= endD) {
       const wn = getISOWeekNumber(cursor)
+
+      // Gerer le cas ou la semaine ISO chevauche le changement d'annee
       const cMonth = cursor.getMonth()
       const cYear = cursor.getFullYear()
       const yr =
         cMonth === 0 && wn > 50
-          ? cYear - 1
+          ? cYear - 1         // Janvier mais semaine 52/53 → annee precedente
           : cMonth === 11 && wn === 1
-            ? cYear + 1
+            ? cYear + 1       // Decembre mais semaine 1 → annee suivante
             : cYear
 
       etab.secteursMap[c.secteur].weeks.push({
@@ -257,12 +370,13 @@ export function transformPlanningData(flat) {
         status: computeStatus(c.placesTotal, c.placesUtilisees),
       })
 
-      // Avancer au lundi suivant
+      // Avancer au lundi de la semaine suivante
       const curDow = cursor.getDay() || 7
       cursor.setDate(cursor.getDate() + (8 - curDow))
     }
   }
 
+  // Convertir les maps en tableaux pour les composants React
   const etablissements = Object.values(etabMap).map((etab) => ({
     id: etab.id,
     name: etab.name,
@@ -276,6 +390,7 @@ export function transformPlanningData(flat) {
     formsUrl,
     formsUrlNouvelEtablissement,
     formsUrlNouveauSecteur,
+    modulesMetiers: flat.modulesMetiers || null,
     organization: {
       name: 'Fondation Clair-Bois',
       logo: 'assets/logo-clair-bois.png',
