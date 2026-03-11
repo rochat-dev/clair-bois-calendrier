@@ -14,17 +14,7 @@ import { useState } from 'react'
 const FORMS_URL_DEJA_INSCRIT = 'https://google.ch'
 
 export default function HomePage({ data, onGoToModules }) {
-  const { lastUpdated } = data
   const [showStageChoix, setShowStageChoix] = useState(false)
-
-  const updateDate = new Date(lastUpdated).toLocaleDateString('fr-CH', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
   const nbModules = data.modulesMetiers?.modules?.length || 0
 
   return (
@@ -159,9 +149,9 @@ export default function HomePage({ data, onGoToModules }) {
         </div>
       )}
 
-      {/* Horodatage de la derniere mise a jour */}
+      {/* Mention Fondation */}
       <p className="text-center text-sm text-gray-400 mt-8">
-        Dernière mise à jour : {updateDate}
+        Fondation Clair-Bois — Genève
       </p>
     </div>
   )
