@@ -144,9 +144,9 @@ function App() {
       <Header organization={data.organization} />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Ecran 1 : Page d'accueil — choix de l'etablissement */}
+        {/* Ecran 1 : Page d'accueil — choix du parcours */}
         {currentView === 'home' && (
-          <HomePage data={data} onSelectEtablissement={goToEtablissement} onGoToModules={goToModules} />
+          <HomePage data={data} onGoToModules={goToModules} />
         )}
 
         {/* Ecran 2 : Page etablissement — choix du secteur */}
