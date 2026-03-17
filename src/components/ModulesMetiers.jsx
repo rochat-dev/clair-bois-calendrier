@@ -31,7 +31,15 @@ function groupByJour(modules) {
   return grouped
 }
 
-export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
+/** URLs des formulaires selon le chemin d'aiguillage */
+const MODULES_FORMS_URLS = {
+  // Modules + moi-même → Form 6 (modules-participant)
+  'moi': 'https://forms.office.com/e/2TwtdawF7s',
+  // Modules + référent → Form 2 (modules-partenaire)
+  'autre': 'https://forms.office.com/e/rTA3ZiwUVb',
+}
+
+export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBack }) {
   const { modules, semaines, maxSelection, formsUrlModules } = modulesMetiers
   // selected = [{ mod, semaine }] — chaque entree lie un module a une semaine
   const [selected, setSelected] = useState([])
@@ -69,7 +77,8 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, onBack }) {
   }
 
   const buildInscriptionUrl = () => {
-    const base = formsUrlModules || formsUrl
+    // Choisir le bon formulaire selon l'aiguillage (moi-même vs référent)
+    const base = (chemin ? MODULES_FORMS_URLS[chemin.pourQui] : null) || formsUrlModules || formsUrl
     // Encode chaque module avec sa semaine dans le champ modules
     const modulesStr = selected
       .map(s => `${s.mod.nom} (${s.mod.site}) — S${s.semaine.semaine} du ${s.semaine.dateDebut} au ${s.semaine.dateFin}`)

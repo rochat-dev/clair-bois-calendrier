@@ -10,12 +10,23 @@ import { formatDate, getCalendarDays, groupByWeeks } from '../utils/helpers'
 const JOURS_COURT = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
 
 const SECTEURS = [
+  { id: 'asa', nom: 'ASA', icon: '🤝', description: 'Assistant·e socio-éducatif·ve — accompagnement au quotidien' },
+  { id: 'ase', nom: 'ASE', icon: '👥', description: 'Assistant·e socio-éducatif·ve — encadrement éducatif' },
+  { id: 'assc', nom: 'ASSC', icon: '🏥', description: 'Assistant·e en soins et santé communautaire' },
   { id: 'cuisine', nom: 'Cuisine', icon: '🍳', description: 'Préparation des repas et apprentissage culinaire' },
-  { id: 'lingerie', nom: 'Lingerie', icon: '👕', description: 'Blanchisserie, repassage et entretien du linge' },
-  { id: 'nettoyage', nom: 'Nettoyage', icon: '🧹', description: 'Entretien des locaux et hygiène professionnelle' },
-  { id: 'secretariat', nom: 'Secrétariat', icon: '📋', description: 'Administration, accueil et tâches de bureau' },
-  { id: 'technique', nom: 'Technique', icon: '🔧', description: 'Maintenance, réparations et travaux techniques' },
   { id: 'restauration', nom: 'Restauration', icon: '🍽️', description: 'Service en salle et gestion de la restauration' },
+  { id: 'patisserie-boulangerie', nom: 'Pâtisserie-boulangerie', icon: '🥐', description: 'Confection de pains, viennoiseries et pâtisseries' },
+  { id: 'nettoyage', nom: 'Nettoyage', icon: '🧹', description: 'Entretien des locaux et hygiène professionnelle' },
+  { id: 'exploitation', nom: 'Exploitation', icon: '🏢', description: 'Gestion et maintenance des bâtiments' },
+  { id: 'peinture', nom: 'Peinture', icon: '🎨', description: 'Travaux de peinture intérieure et extérieure' },
+  { id: 'graphisme', nom: 'Graphisme', icon: '🖌️', description: 'Création graphique et mise en page' },
+  { id: 'audio-visuel', nom: 'Audio-visuel', icon: '🎬', description: 'Production vidéo, son et montage' },
+  { id: 'mediamatique', nom: 'Médiamatique', icon: '💻', description: 'Communication numérique et multimédia' },
+  { id: 'intendance', nom: 'Intendance', icon: '🏠', description: 'Gestion du ménage et de l\'économie domestique' },
+  { id: 'lingerie', nom: 'Lingerie', icon: '👕', description: 'Blanchisserie, repassage et entretien du linge' },
+  { id: 'informatique', nom: 'Informatique', icon: '🖥️', description: 'Support technique et développement informatique' },
+  { id: 'confection', nom: 'Confection', icon: '🧵', description: 'Couture, retouches et travaux textiles' },
+  { id: 'autre', nom: 'Autre', icon: '📋', description: 'Autre secteur — précisez dans le formulaire' },
 ]
 
 function toDateStr(date) {
@@ -34,7 +45,19 @@ function isBetween(date, start, end) {
   return date >= start && date <= end
 }
 
-export default function StagesPage({ formsUrl, onBack }) {
+/** URLs des formulaires selon le chemin d'aiguillage */
+const FORMS_URLS = {
+  // Stage + moi-même + NON → Form 1 (stage-stagiaire)
+  'stages-moi-non': 'https://forms.office.com/e/pcHEHRRk6x',
+  // Stage + référent + NON → Form 7 (stage-partenaire)
+  'stages-autre-non': 'https://forms.office.com/e/3SZvXC6kb5',
+  // Stage + moi-même + OUI → Form 3 (Retour à CB)
+  'stages-moi-oui': 'https://forms.office.com/e/WMBW4GWVdW',
+  // Stage + référent + OUI → Form 7 (stage-partenaire) — même form, PA gère le doublon
+  'stages-autre-oui': 'https://forms.office.com/e/3SZvXC6kb5',
+}
+
+export default function StagesPage({ formsUrl, chemin, onBack }) {
   const [selectedSecteur, setSelectedSecteur] = useState(null)
   const [rangeStart, setRangeStart] = useState(null)
   const [rangeEnd, setRangeEnd] = useState(null)
@@ -102,11 +125,14 @@ export default function StagesPage({ formsUrl, onBack }) {
 
   const buildStageUrl = () => {
     if (!selectedSecteur || !rangeStart) return '#'
-    const base = formsUrl
+    // Déterminer le bon formulaire selon le chemin d'aiguillage
+    const cheminKey = `stages-${chemin.pourQui}-${chemin.dejaInscrit ? 'oui' : 'non'}`
+    const base = FORMS_URLS[cheminKey] || formsUrl
     const e = encodeURIComponent
     const secteurStr = selectedSecteur.nom
     const dateDebut = toDateStr(rangeStart)
     const dateFin = rangeEnd ? toDateStr(rangeEnd) : dateDebut
+    // IDs de pré-remplissage (communs à la plupart des forms)
     return `${base}?r1faa50a65150406b95d3a62e45550e40=${e(secteurStr)}&r50efe78018854247bf6e734db7188d70=${e(dateDebut)}&r77ae6366339446f39c90be5aa93b3a71=${e(dateFin)}`
   }
 

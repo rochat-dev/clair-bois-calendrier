@@ -21,6 +21,7 @@ import SecteurCalendar from './components/SecteurCalendar'
 import WeekDetail from './components/WeekDetail'
 import ModulesMetiers from './components/ModulesMetiers'
 import StagesPage from './components/StagesPage'
+import Aiguillage from './components/Aiguillage'
 
 function App() {
   /* --- Etat du chargement des donnees --- */
@@ -33,6 +34,9 @@ function App() {
   const [selectedEtablissement, setSelectedEtablissement] = useState(null)
   const [selectedSecteur, setSelectedSecteur] = useState(null)
   const [selectedWeek, setSelectedWeek] = useState(null)
+  /* --- Aiguillage : parcours choisi + réponses aux 2 questions --- */
+  const [aiguillageParcours, setAiguillageParcours] = useState(null) // 'stages' | 'modules'
+  const [chemin, setChemin] = useState(null) // { pourQui: 'moi'|'autre', dejaInscrit: bool }
 
   /**
    * Chargement initial de planning.json.
@@ -65,6 +69,8 @@ function App() {
     setSelectedEtablissement(null)
     setSelectedSecteur(null)
     setSelectedWeek(null)
+    setAiguillageParcours(null)
+    setChemin(null)
   }
 
   /** Selection d'un etablissement → affiche ses secteurs */
@@ -101,20 +107,30 @@ function App() {
     setCurrentView('secteur')
   }
 
-  /** Navigation vers les modules metiers */
+  /** Navigation vers les modules metiers (passe d'abord par l'aiguillage) */
   const goToModules = () => {
-    setCurrentView('modules')
+    setAiguillageParcours('modules')
+    setChemin(null)
+    setCurrentView('aiguillage')
     setSelectedEtablissement(null)
     setSelectedSecteur(null)
     setSelectedWeek(null)
   }
 
-  /** Navigation vers les stages */
+  /** Navigation vers les stages (passe d'abord par l'aiguillage) */
   const goToStages = () => {
-    setCurrentView('stages')
+    setAiguillageParcours('stages')
+    setChemin(null)
+    setCurrentView('aiguillage')
     setSelectedEtablissement(null)
     setSelectedSecteur(null)
     setSelectedWeek(null)
+  }
+
+  /** Callback quand l'aiguillage est terminé → affiche le bon composant */
+  const handleAiguillageResult = (result) => {
+    setChemin(result)
+    setCurrentView(aiguillageParcours) // 'stages' ou 'modules'
   }
 
   /* --- Ecran de chargement (spinner) --- */
@@ -193,19 +209,30 @@ function App() {
           />
         )}
 
+        {/* Ecran Aiguillage : 2 questions avant Stages/Modules */}
+        {currentView === 'aiguillage' && aiguillageParcours && (
+          <Aiguillage
+            parcours={aiguillageParcours}
+            onResult={handleAiguillageResult}
+            onBack={goToHome}
+          />
+        )}
+
         {/* Ecran 5 : Modules metiers — grille semaine type */}
-        {currentView === 'modules' && data.modulesMetiers && (
+        {currentView === 'modules' && data.modulesMetiers && chemin && (
           <ModulesMetiers
             modulesMetiers={data.modulesMetiers}
             formsUrl={data.formsUrl}
+            chemin={chemin}
             onBack={goToHome}
           />
         )}
 
         {/* Ecran 6 : Stages — choix secteur + calendrier dates */}
-        {currentView === 'stages' && (
+        {currentView === 'stages' && chemin && (
           <StagesPage
             formsUrl={data.formsUrl}
+            chemin={chemin}
             onBack={goToHome}
           />
         )}
