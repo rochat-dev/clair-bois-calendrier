@@ -104,18 +104,40 @@ Chaque écran offre un bouton discret (bordure pointillée + InfoBulle) permetta
 - **EtablissementPage** : "Ajouter un secteur" → `formsUrlNouveauSecteur` (pré-remplit établissement)
 - **SecteurCalendar** : "Ajouter un créneau pour {secteur}" → `formsUrlNouveauSecteur` (pré-remplit établissement + secteur)
 
-### Décision architecturale : garder Microsoft Forms
-Le formulaire d'inscription stagiaire (43 questions, données sensibles : AVS, curatelle, AI) reste sur Microsoft Forms car :
-- Données sensibles incompatibles avec un site statique GitHub Pages
-- Power Automate déjà branché sur le Forms existant
-- Le calendrier est la vraie valeur ajoutée, pas le formulaire
+### Architecture formulaire intégré (19 mars 2026)
+Le formulaire d'inscription est désormais intégré dans le site React (plus de redirection vers Microsoft Forms).
 
-## Fonctionnalités Phase 2 (NE PAS DÉVELOPPER — hors scope deadline)
-- Formulaire d'inscription intégré (remplacement de Microsoft Forms, nécessite backend Azure)
-- Écran d'accueil enrichi avec présentation de chaque établissement
-- Panel référent cadre pour gérer les disponibilités directement sur le site (sans Forms)
-- Système de conditions (vérification doublon stagiaire, etc.)
-- Notifications par email
+**Structure** :
+```
+src/components/
+├── FormulaireInscription.jsx       ← Orchestrateur multi-étapes
+├── formulaire/
+│   ├── ChampFormulaire.jsx         ← Composant input réutilisable
+│   ├── EtapeStagiaire.jsx          ← Identité + coordonnées
+│   ├── EtapeCuratelle.jsx          ← Conditionnel (oui/non → champs curateur)
+│   ├── EtapeUrgence.jsx            ← Contact d'urgence
+│   ├── EtapeAI.jsx                 ← Infos assurance invalidité
+│   ├── EtapeReferent.jsx           ← Si pourQui === 'autre'
+│   ├── Recapitulatif.jsx           ← Relecture + modifier avant envoi
+│   └── Confirmation.jsx            ← Succès / erreur post-envoi
+src/utils/
+├── validation.js                   ← AVS, tél suisse, NPA, email
+└── formConfig.js                   ← Sections visibles par chemin d'aiguillage
+```
+
+**Soumission** :
+- Dev/test : `fetch(import.meta.env.VITE_PA_HTTP_URL, { method: 'POST' })` — URL dans `.env.local`
+- Production (Azure SWA) : `fetch('/api/inscription')` → Azure Function proxy → PA/SharePoint
+- Le payload JSON inclut un champ `cheminKey` pour router la logique côté PA
+
+**Hébergement cible** : Azure Static Web Apps (tenant Microsoft Clair-Bois)
+
+## Fonctionnalités Phase 2 (hors scope mardi)
+- Cartographie des sites/pôles (board interactif capacités — demande Karavia)
+- Panel référent cadre pour gérer les disponibilités directement
+- Workflows email automatiques (confirmation, demande documents, J-7)
+- Vérification doublon stagiaire via AVS (appel PA → check SharePoint)
+- Sauvegarde sessionStorage anti-perte de saisie
 
 ## Fonctions utilitaires clés (helpers.js)
 - `transformPlanningData(flat)` : plat PA → hiérarchique React (rétrocompatible)

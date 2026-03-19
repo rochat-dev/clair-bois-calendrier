@@ -57,7 +57,7 @@ const FORMS_URLS = {
   'stages-autre-oui': 'https://forms.office.com/e/3SZvXC6kb5',
 }
 
-export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire }) {
+export default function StagesPage({ formsUrl, chemin, onBack }) {
   const [selectedSecteur, setSelectedSecteur] = useState(null)
   const [rangeStart, setRangeStart] = useState(null)
   const [rangeEnd, setRangeEnd] = useState(null)
@@ -86,17 +86,11 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
     else setViewMonth(viewMonth + 1)
   }
 
-  const isWeekend = (date) => {
-    if (!date) return false
-    const day = date.getDay()
-    return day === 0 || day === 6
-  }
-
   const isDisabled = (date) => {
     if (!date) return true
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
-    return d < minDate || isWeekend(d)
+    return d < minDate
   }
 
   const handleDayClick = (date) => {
@@ -250,20 +244,18 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
               >
                 Réinitialiser
               </button>
-              <button
-                onClick={() => onGoToFormulaire({
-                  secteur: selectedSecteur.nom,
-                  dateDebut: toDateStr(rangeStart),
-                  dateFin: rangeEnd ? toDateStr(rangeEnd) : toDateStr(rangeStart),
-                })}
+              <a
+                href={buildStageUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-2 bg-cb-green text-white rounded-lg font-medium
-                           hover:bg-cb-green/90 transition-colors whitespace-nowrap text-sm cursor-pointer"
+                           hover:bg-cb-green/90 transition-colors whitespace-nowrap no-underline text-sm"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 S'inscrire
-              </button>
+              </a>
             </div>
           )}
         </div>
@@ -328,7 +320,7 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
       <div className="mt-3 flex flex-wrap gap-4 justify-center text-xs text-gray-500">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-gray-200" />
-          Non disponible
+          Non disponible (14 jours)
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-cb-blue" />

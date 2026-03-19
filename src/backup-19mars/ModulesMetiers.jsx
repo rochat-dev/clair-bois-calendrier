@@ -39,7 +39,7 @@ const MODULES_FORMS_URLS = {
   'autre': 'https://forms.office.com/e/rTA3ZiwUVb',
 }
 
-export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBack, onGoToFormulaire }) {
+export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBack }) {
   const { modules, semaines, maxSelection, formsUrlModules } = modulesMetiers
   // selected = [{ mod, semaine }] — chaque entree lie un module a une semaine
   const [selected, setSelected] = useState([])
@@ -140,16 +140,18 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
             )}
           </div>
           {selected.length > 0 && (
-            <button
-              onClick={() => onGoToFormulaire({ modules: selected })}
+            <a
+              href={buildInscriptionUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-cb-green text-white rounded-lg font-medium
-                         hover:bg-cb-green/90 transition-colors whitespace-nowrap cursor-pointer"
+                         hover:bg-cb-green/90 transition-colors whitespace-nowrap no-underline"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               S'inscrire
-            </button>
+            </a>
           )}
         </div>
       </div>
@@ -265,44 +267,27 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
             </p>
 
             <div className="grid gap-2">
-              {semaines.map((sem) => {
-                const debut = new Date(sem.dateDebut + 'T00:00:00')
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                const minDate = new Date(today)
-                minDate.setDate(minDate.getDate() + 7)
-                const tooSoon = debut < minDate
-
-                return (
-                  <button
-                    key={sem.semaine}
-                    onClick={() => !tooSoon && assignWeek(sem)}
-                    disabled={tooSoon}
-                    className={`flex items-center justify-between p-3 rounded-lg border-2 text-left transition-all duration-200
-                      ${tooSoon
-                        ? 'border-gray-100 bg-gray-50 cursor-not-allowed'
-                        : 'border-gray-200 hover:border-cb-blue hover:bg-cb-blue-light cursor-pointer group'
-                      }`}
-                  >
-                    <div>
-                      <p className={`font-semibold transition-colors ${tooSoon ? 'text-gray-400' : 'text-gray-900 group-hover:text-cb-blue'}`}>
-                        Semaine {sem.semaine}
-                      </p>
-                      <p className={`text-xs ${tooSoon ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {formatDate(sem.dateDebut)} — {formatDate(sem.dateFin)}
-                      </p>
-                      {tooSoon && (
-                        <p className="text-xs text-cb-red font-medium mt-0.5">Inscription fermée (J-7)</p>
-                      )}
-                    </div>
-                    {!tooSoon && (
-                      <svg className="w-4 h-4 text-gray-300 group-hover:text-cb-blue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    )}
-                  </button>
-                )
-              })}
+              {semaines.map((sem) => (
+                <button
+                  key={sem.semaine}
+                  onClick={() => assignWeek(sem)}
+                  className="flex items-center justify-between p-3 rounded-lg border-2 border-gray-200
+                             hover:border-cb-blue hover:bg-cb-blue-light transition-all duration-200
+                             cursor-pointer text-left group"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-900 group-hover:text-cb-blue transition-colors">
+                      Semaine {sem.semaine}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(sem.dateDebut)} — {formatDate(sem.dateFin)}
+                    </p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-cb-blue transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
             </div>
 
             <button

@@ -22,7 +22,6 @@ import WeekDetail from './components/WeekDetail'
 import ModulesMetiers from './components/ModulesMetiers'
 import StagesPage from './components/StagesPage'
 import Aiguillage from './components/Aiguillage'
-import FormulaireInscription from './components/FormulaireInscription'
 
 function App() {
   /* --- Etat du chargement des donnees --- */
@@ -38,8 +37,6 @@ function App() {
   /* --- Aiguillage : parcours choisi + réponses aux 2 questions --- */
   const [aiguillageParcours, setAiguillageParcours] = useState(null) // 'stages' | 'modules'
   const [chemin, setChemin] = useState(null) // { pourQui: 'moi'|'autre', dejaInscrit: bool }
-  /* --- Formulaire intégré : contexte (secteur+dates ou modules+semaines) --- */
-  const [formulaireContext, setFormulaireContext] = useState(null)
 
   /**
    * Chargement initial de planning.json.
@@ -136,18 +133,6 @@ function App() {
     setCurrentView(aiguillageParcours) // 'stages' ou 'modules'
   }
 
-  /** Navigation vers le formulaire intégré (depuis StagesPage ou ModulesMetiers) */
-  const goToFormulaire = (contextData) => {
-    setFormulaireContext(contextData)
-    setCurrentView('formulaire')
-  }
-
-  /** Retour depuis le formulaire vers la page précédente (stages ou modules) */
-  const goBackFromFormulaire = () => {
-    setFormulaireContext(null)
-    setCurrentView(aiguillageParcours) // retour à stages ou modules
-  }
-
   /* --- Ecran de chargement (spinner) --- */
   if (loading) {
     return (
@@ -240,7 +225,6 @@ function App() {
             formsUrl={data.formsUrl}
             chemin={chemin}
             onBack={goToHome}
-            onGoToFormulaire={goToFormulaire}
           />
         )}
 
@@ -250,18 +234,6 @@ function App() {
             formsUrl={data.formsUrl}
             chemin={chemin}
             onBack={goToHome}
-            onGoToFormulaire={goToFormulaire}
-          />
-        )}
-
-        {/* Ecran 7 : Formulaire intégré */}
-        {currentView === 'formulaire' && chemin && formulaireContext && (
-          <FormulaireInscription
-            parcours={aiguillageParcours}
-            chemin={chemin}
-            contextData={formulaireContext}
-            onBack={goBackFromFormulaire}
-            onGoHome={goToHome}
           />
         )}
       </main>
