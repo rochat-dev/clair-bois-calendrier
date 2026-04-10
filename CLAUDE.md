@@ -31,18 +31,63 @@ Fondation > Établissements > Secteurs > Créneaux de disponibilité (peuvent se
 src/
 ├── App.jsx              # Router principal, chargement du JSON, passage des props
 ├── main.jsx             # Point d'entrée React
-├── index.css            # Tailwind + thème personnalisé
+├── index.css            # Tailwind + thème personnalisé (Open Sans, couleurs Clair Bois)
 ├── components/
-│   ├── Header.jsx       # Header avec logo et nom fondation
+│   ├── Header.jsx       # Header avec logo officiel Clair Bois
+│   ├── Footer.jsx       # Pied de page 3 colonnes (adresse, foyers, entreprises)
 │   ├── Breadcrumb.jsx   # Fil d'Ariane cliquable
 │   ├── InfoBulle.jsx    # Tooltip hover/clic pour expliquer les actions référent cadre
-│   ├── HomePage.jsx     # Écran 1 : choix établissement (+carte "ajouter établissement")
-│   ├── EtablissementPage.jsx  # Écran 2 : choix secteur (+carte "ajouter secteur")
-│   ├── SecteurCalendar.jsx    # Écran 3 : calendrier mensuel (+bouton "ajouter créneau")
-│   └── WeekDetail.jsx   # Écran 4 : détail semaine + inscription (multi-créneaux supporté)
-└── utils/
-    └── helpers.js        # Fonctions utilitaires (couleurs, dates, agrégation, etc.)
+│   ├── HomePage.jsx     # Écran 1 : choix parcours (modules métiers / stages)
+│   ├── Aiguillage.jsx   # Questions d'orientation (pour qui ? déjà inscrit ?)
+│   ├── ModulesMetiers.jsx     # Grille semaine type des modules métiers
+│   ├── StagesPage.jsx         # Choix secteur (17 secteurs + illustrations) + calendrier
+│   ├── EtablissementPage.jsx  # Écran : choix secteur par établissement
+│   ├── SecteurCalendar.jsx    # Calendrier mensuel par secteur
+│   ├── WeekDetail.jsx         # Détail semaine + inscription
+│   ├── FormulaireInscription.jsx  # Formulaire multi-étapes intégré
+│   └── formulaire/            # Sous-composants du formulaire
+│       ├── ChampFormulaire.jsx
+│       ├── EtapeStagiaire.jsx
+│       ├── EtapeCuratelle.jsx
+│       ├── EtapeUrgence.jsx
+│       ├── EtapeAI.jsx
+│       ├── EtapeComplementaire.jsx
+│       ├── EtapeReferent.jsx
+│       ├── EtapeDeclaration.jsx
+│       ├── Recapitulatif.jsx
+│       └── Confirmation.jsx
+├── utils/
+│   ├── helpers.js       # Fonctions utilitaires (couleurs, dates, agrégation, etc.)
+│   ├── validation.js    # Validation AVS, téléphone, NPA, email, date
+│   └── formConfig.js    # Configuration des sections par chemin d'aiguillage
+├── tests/
+│   ├── setup.js
+│   ├── helpers.test.js      # 73 tests fonctions utilitaires
+│   ├── validation.test.js   # 63 tests validation
+│   ├── formConfig.test.js   # 18 tests configuration
+│   └── formulaire.test.jsx  # 30+ tests composants formulaire
+└── public/
+    ├── planning.json          # Données générées par Power Automate
+    ├── logo-clairbois.png     # Logo officiel
+    ├── card-modules.jpg       # Photo DFIP pour carte modules
+    ├── illust-stages.svg      # Illustration carte stages
+    ├── illust-moi.svg         # Illustration aiguillage "pour moi-même"
+    ├── illust-autre.svg       # Illustration aiguillage "pour quelqu'un d'autre"
+    └── secteurs/              # 17 illustrations SVG par secteur (Storyset, recolorisées #092C6A)
 ```
+
+## Design — Intégration clairbois.ch (10 avril 2026)
+
+Adaptation visuelle pour cohérence avec le site officiel WordPress/Divi :
+- **Police** : Open Sans (Google Fonts) — identique à clairbois.ch
+- **Couleur primaire** : `#092C6A` (cb-blue) — bleu marine officiel Clair Bois
+- **Couleur accent** : `#2EA3F2` (cb-accent) — bleu clair pour CTA/boutons d'action
+- **Logo** : logo officiel `logo-clairbois.png` (récupéré du site)
+- **Footer** : 3 colonnes (adresse + foyers + entreprises sociales), fond `#434343`
+- **Illustrations** : Storyset (Freepik), recolorisées en `#092C6A`, style Rafiki
+- **Nom officiel** : "Fondation Clair Bois" (sans tiret)
+- **Tests** : 164 tests Vitest (helpers, validation, formConfig, composants)
+- **Documentation** : `docs/architecture-frontend.html` — architecture interactive
 
 ## Couleurs du code de disponibilité
 - **Vert** (`cb-green`) : >50% des places disponibles

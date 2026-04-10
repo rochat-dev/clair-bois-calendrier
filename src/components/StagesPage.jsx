@@ -1,5 +1,5 @@
 /**
- * StagesPage.jsx — Parcours "Demande de stage".
+ * StagesPage.jsx,Parcours "Demande de stage".
  *
  * Flow : 1) Choisir un secteur → 2) Calendrier avec selection de plage
  *        (14 jours apres aujourd'hui grises) → 3) S'inscrire (prefill Forms)
@@ -10,23 +10,23 @@ import { formatDate, getCalendarDays, groupByWeeks } from '../utils/helpers'
 const JOURS_COURT = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
 
 const SECTEURS = [
-  { id: 'asa', nom: 'ASA', icon: '🤝', description: 'Assistant·e socio-éducatif·ve — accompagnement au quotidien' },
-  { id: 'ase', nom: 'ASE', icon: '👥', description: 'Assistant·e socio-éducatif·ve — encadrement éducatif' },
-  { id: 'assc', nom: 'ASSC', icon: '🏥', description: 'Assistant·e en soins et santé communautaire' },
-  { id: 'cuisine', nom: 'Cuisine', icon: '🍳', description: 'Préparation des repas et apprentissage culinaire' },
-  { id: 'restauration', nom: 'Restauration', icon: '🍽️', description: 'Service en salle et gestion de la restauration' },
-  { id: 'patisserie-boulangerie', nom: 'Pâtisserie-boulangerie', icon: '🥐', description: 'Confection de pains, viennoiseries et pâtisseries' },
-  { id: 'nettoyage', nom: 'Nettoyage', icon: '🧹', description: 'Entretien des locaux et hygiène professionnelle' },
-  { id: 'exploitation', nom: 'Exploitation', icon: '🏢', description: 'Gestion et maintenance des bâtiments' },
-  { id: 'peinture', nom: 'Peinture', icon: '🎨', description: 'Travaux de peinture intérieure et extérieure' },
-  { id: 'graphisme', nom: 'Graphisme', icon: '🖌️', description: 'Création graphique et mise en page' },
-  { id: 'audio-visuel', nom: 'Audio-visuel', icon: '🎬', description: 'Production vidéo, son et montage' },
-  { id: 'mediamatique', nom: 'Médiamatique', icon: '💻', description: 'Communication numérique et multimédia' },
-  { id: 'intendance', nom: 'Intendance', icon: '🏠', description: 'Gestion du ménage et de l\'économie domestique' },
-  { id: 'lingerie', nom: 'Lingerie', icon: '👕', description: 'Blanchisserie, repassage et entretien du linge' },
-  { id: 'informatique', nom: 'Informatique', icon: '🖥️', description: 'Support technique et développement informatique' },
-  { id: 'confection', nom: 'Confection', icon: '🧵', description: 'Couture, retouches et travaux textiles' },
-  { id: 'autre', nom: 'Autre', icon: '📋', description: 'Autre secteur — précisez dans le formulaire' },
+  { id: 'asa', nom: 'ASA', img: 'sec-asa.svg', description: 'Assistant·e socio-éducatif·ve, accompagnement au quotidien' },
+  { id: 'ase', nom: 'ASE', img: 'sec-ase.svg', description: 'Assistant·e socio-éducatif·ve, encadrement éducatif' },
+  { id: 'assc', nom: 'ASSC', img: 'sec-assc.svg', description: 'Assistant·e en soins et santé communautaire' },
+  { id: 'cuisine', nom: 'Cuisine', img: 'sec-cuisine.svg', description: 'Préparation des repas et apprentissage culinaire' },
+  { id: 'restauration', nom: 'Restauration', img: 'sec-restauration.svg', description: 'Service en salle et gestion de la restauration' },
+  { id: 'patisserie-boulangerie', nom: 'Pâtisserie-boulangerie', img: 'sec-patisserie.svg', description: 'Confection de pains, viennoiseries et pâtisseries' },
+  { id: 'nettoyage', nom: 'Nettoyage', img: 'sec-nettoyage.svg', description: 'Entretien des locaux et hygiène professionnelle' },
+  { id: 'exploitation', nom: 'Exploitation', img: 'sec-exploitation.svg', description: 'Gestion et maintenance des bâtiments' },
+  { id: 'peinture', nom: 'Peinture', img: 'sec-peinture.svg', description: 'Travaux de peinture intérieure et extérieure' },
+  { id: 'graphisme', nom: 'Graphisme', img: 'sec-graphisme.svg', description: 'Création graphique et mise en page sur ordinateur' },
+  { id: 'audio-visuel', nom: 'Audio-visuel', img: 'sec-audiovisuel.svg', description: 'Production vidéo, son et montage' },
+  { id: 'mediamatique', nom: 'Médiamatique', img: 'sec-mediamatique.svg', description: 'Communication numérique et multimédia' },
+  { id: 'intendance', nom: 'Intendance', img: 'sec-intendance.svg', description: 'Gestion du ménage et de l\'économie domestique' },
+  { id: 'lingerie', nom: 'Lingerie', img: 'sec-lingerie.svg', description: 'Blanchisserie, repassage et entretien du linge' },
+  { id: 'informatique', nom: 'Informatique', img: 'sec-informatique.svg', description: 'Support technique et développement informatique' },
+  { id: 'confection', nom: 'Confection', img: 'sec-confection.svg', description: 'Couture, retouches et travaux textiles' },
+  { id: 'autre', nom: 'Autre', img: 'sec-autre.svg', description: 'Autre secteur, précisez dans le formulaire' },
 ]
 
 function toDateStr(date) {
@@ -53,7 +53,7 @@ const FORMS_URLS = {
   'stages-autre-non': 'https://forms.office.com/e/3SZvXC6kb5',
   // Stage + moi-même + OUI → Form 3 (Retour à CB)
   'stages-moi-oui': 'https://forms.office.com/e/WMBW4GWVdW',
-  // Stage + référent + OUI → Form 7 (stage-partenaire) — même form, PA gère le doublon
+  // Stage + référent + OUI → Form 7 (stage-partenaire),même form, PA gère le doublon
   'stages-autre-oui': 'https://forms.office.com/e/3SZvXC6kb5',
 }
 
@@ -154,7 +154,8 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
       <div className="animate-fadeIn">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-4 cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                     px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -177,18 +178,22 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
               key={sec.id}
               onClick={() => setSelectedSecteur(sec)}
               className="bg-white rounded-xl border-2 border-gray-200 p-5 text-left
-                         hover:border-cb-green hover:shadow-md transition-all duration-200 cursor-pointer group"
+                         hover:border-cb-accent hover:shadow-md transition-all duration-200 cursor-pointer group"
             >
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">{sec.icon}</span>
-                <div>
-                  <p className="font-bold text-gray-900 group-hover:text-cb-green transition-colors">
+              <div className="flex items-center gap-4">
+                <img
+                  src={`${import.meta.env.BASE_URL}secteurs/${sec.img}`}
+                  alt=""
+                  className="w-32 h-32 shrink-0"
+                />
+                <div className="flex-1 text-center">
+                  <p className="font-bold text-gray-900 group-hover:text-cb-accent transition-colors">
                     {sec.nom}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">{sec.description}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 mt-3 text-cb-green text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1.5 mt-3 text-cb-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
                 Choisir ce secteur
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -206,7 +211,8 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
     <div className="animate-fadeIn">
       <button
         onClick={resetAll}
-        className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-4 cursor-pointer"
+        className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                   px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -256,8 +262,8 @@ export default function StagesPage({ formsUrl, chemin, onBack, onGoToFormulaire 
                   dateDebut: toDateStr(rangeStart),
                   dateFin: rangeEnd ? toDateStr(rangeEnd) : toDateStr(rangeStart),
                 })}
-                className="inline-flex items-center gap-2 px-5 py-2 bg-cb-green text-white rounded-lg font-medium
-                           hover:bg-cb-green/90 transition-colors whitespace-nowrap text-sm cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2 bg-cb-accent text-white rounded-lg font-medium
+                           hover:bg-cb-accent/90 transition-colors whitespace-nowrap text-sm cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

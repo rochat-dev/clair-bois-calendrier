@@ -392,7 +392,7 @@ export function transformPlanningData(flat) {
     formsUrlNouveauSecteur,
     modulesMetiers: flat.modulesMetiers || null,
     organization: {
-      name: 'Fondation Clair-Bois',
+      name: 'Fondation Clair Bois',
       logo: 'assets/logo-clair-bois.png',
       description: 'Calendrier des disponibilités de stage pour les référents externes',
     },

@@ -28,7 +28,8 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
       <div className="animate-fadeIn">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-6 cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                     px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -56,16 +57,15 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
                 setPourQui('moi')
               }
             }}
-            className="bg-white rounded-xl border-2 border-gray-200 p-6 text-center
+            className="bg-white rounded-xl border-2 border-gray-200 p-10 text-center
                        hover:border-cb-blue hover:shadow-lg transition-all duration-200
                        cursor-pointer group flex flex-col items-center"
           >
-            <div className="w-12 h-12 rounded-xl bg-cb-blue/10 flex items-center justify-center mb-4
-                            group-hover:bg-cb-blue/20 transition-colors">
-              <svg className="w-6 h-6 text-cb-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}illust-moi.svg`}
+              alt=""
+              className="w-64 h-64 mb-3 group-hover:scale-105 transition-transform duration-300"
+            />
             <h3 className="text-lg font-bold text-gray-900 group-hover:text-cb-blue transition-colors mb-1">
               Pour moi-même
             </h3>
@@ -83,16 +83,15 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
                 setPourQui('autre')
               }
             }}
-            className="bg-white rounded-xl border-2 border-gray-200 p-6 text-center
+            className="bg-white rounded-xl border-2 border-gray-200 p-10 text-center
                        hover:border-cb-blue hover:shadow-lg transition-all duration-200
                        cursor-pointer group flex flex-col items-center"
           >
-            <div className="w-12 h-12 rounded-xl bg-cb-blue/10 flex items-center justify-center mb-4
-                            group-hover:bg-cb-blue/20 transition-colors">
-              <svg className="w-6 h-6 text-cb-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}illust-autre.svg`}
+              alt=""
+              className="w-64 h-64 mb-3 group-hover:scale-105 transition-transform duration-300"
+            />
             <h3 className="text-lg font-bold text-gray-900 group-hover:text-cb-blue transition-colors mb-1">
               Pour quelqu'un d'autre
             </h3>
@@ -110,7 +109,8 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
     <div className="animate-fadeIn">
       <button
         onClick={() => setPourQui(null)}
-        className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-6 cursor-pointer"
+        className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                   px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -136,7 +136,7 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
         {/* OUI */}
         <button
           onClick={() => onResult({ pourQui, dejaInscrit: true })}
-          className="bg-white rounded-xl border-2 border-gray-200 p-6 text-center
+          className="bg-white rounded-xl border-2 border-gray-200 p-10 text-center
                      hover:border-green-500 hover:shadow-lg transition-all duration-200
                      cursor-pointer group flex flex-col items-center"
         >
@@ -159,7 +159,7 @@ export default function Aiguillage({ parcours, onResult, onBack }) {
         {/* NON */}
         <button
           onClick={() => onResult({ pourQui, dejaInscrit: false })}
-          className="bg-white rounded-xl border-2 border-gray-200 p-6 text-center
+          className="bg-white rounded-xl border-2 border-gray-200 p-10 text-center
                      hover:border-gray-400 hover:shadow-lg transition-all duration-200
                      cursor-pointer group flex flex-col items-center"
         >

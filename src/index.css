@@ -23,15 +23,17 @@
   --color-cb-red-light: #fde8e8;
   --color-cb-gray: #9ca3af;
   --color-cb-gray-light: #f3f4f6;
-  --color-cb-blue: #1e6091;
+  --color-cb-blue: #092C6A;
   --color-cb-blue-light: #dbeafe;
+  --color-cb-accent: #2EA3F2;
+  --color-cb-accent-light: #e0f2fe;
 }
 
 /* Styles de base du document */
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: linear-gradient(135deg, #e8f4f0 0%, #f0f7ff 40%, #f8fafc 70%, #eef6f1 100%);
+  font-family: 'Open Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #f5f8fc 40%, #f8fafc 70%, #f0f4f8 100%);
   background-attachment: fixed;
   min-height: 100vh;
   color: #1e293b;

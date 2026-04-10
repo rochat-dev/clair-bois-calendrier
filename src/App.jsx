@@ -23,6 +23,7 @@ import ModulesMetiers from './components/ModulesMetiers'
 import StagesPage from './components/StagesPage'
 import Aiguillage from './components/Aiguillage'
 import FormulaireInscription from './components/FormulaireInscription'
+import Footer from './components/Footer'
 
 function App() {
   /* --- Etat du chargement des donnees --- */
@@ -180,10 +181,10 @@ function App() {
 
   /* --- Rendu principal : header + ecran actif selon currentView --- */
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header organization={data.organization} />
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-4 py-6 flex-1">
         {/* Ecran 1 : Page d'accueil — choix du parcours */}
         {currentView === 'home' && (
           <HomePage data={data} onGoToModules={goToModules} onGoToStages={goToStages} />
@@ -265,6 +266,7 @@ function App() {
           />
         )}
       </main>
+      <Footer />
     </div>
   )
 }

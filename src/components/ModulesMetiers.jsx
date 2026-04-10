@@ -10,6 +10,18 @@
 import { useState } from 'react'
 import { formatDate } from '../utils/helpers'
 
+const MODULE_ICONS = {
+  'Cuisine': '🍳',
+  'Lingerie': '🫧',
+  'Pâtisserie': '🧁',
+  'Audiovisuel': '🎬',
+  'Nettoyage': '🧹',
+  'Technique': '🏗️',
+  'Restauration': '🍽️',
+  'Graphisme': '💻',
+  'Ateliers': '🎥',
+}
+
 const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
 const JOURS_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
 const HEURES = Array.from({ length: 10 }, (_, i) => i + 7)
@@ -91,7 +103,8 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
       {/* Retour accueil */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-cb-blue hover:text-cb-blue/80 mb-4 cursor-pointer"
+        className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                   px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -142,8 +155,8 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
           {selected.length > 0 && (
             <button
               onClick={() => onGoToFormulaire({ modules: selected })}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-cb-green text-white rounded-lg font-medium
-                         hover:bg-cb-green/90 transition-colors whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-cb-accent text-white rounded-lg font-medium
+                         hover:bg-cb-accent/90 transition-colors whitespace-nowrap cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -154,9 +167,9 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
         </div>
       </div>
 
-      {/* Grille semaine type */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Grille semaine type — élargie au-delà du conteneur parent */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-visible -mx-32 px-0">
+        <div>
           <div className="min-w-[700px]">
             {/* En-tete jours */}
             <div className="grid grid-cols-[70px_repeat(5,1fr)] border-b border-gray-200">
@@ -181,7 +194,7 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
               </div>
 
               {JOURS.map((jour) => (
-                <div key={jour} className="relative border-l border-gray-200" style={{ height: HEURES.length * 60 }}>
+                <div key={jour} className="relative border-l border-gray-200 overflow-hidden" style={{ height: HEURES.length * 60 }}>
                   {HEURES.map((h) => (
                     <div key={h} className="absolute w-full border-b border-gray-100" style={{ top: (h - 7) * 60 + 60, height: 0 }} />
                   ))}
@@ -197,27 +210,28 @@ export default function ModulesMetiers({ modulesMetiers, formsUrl, chemin, onBac
                       <button
                         key={modKey(mod)}
                         onClick={() => canSelect && handleModuleClick(mod)}
-                        className={`absolute left-1 right-1 rounded-lg p-2 text-left transition-all duration-200
-                          ${canSelect ? 'cursor-pointer hover:scale-[1.02] hover:shadow-md' : 'cursor-not-allowed opacity-50'}
-                          ${isSel ? 'ring-3 ring-cb-blue ring-offset-1 shadow-lg scale-[1.02]' : ''}
+                        className={`absolute left-1 right-1 rounded-lg p-2 transition-all duration-200 overflow-hidden
+                          ${canSelect ? 'cursor-pointer hover:shadow-md hover:brightness-105' : 'cursor-not-allowed opacity-50'}
+                          ${isSel ? 'ring-3 ring-cb-blue ring-offset-2 shadow-lg' : ''}
                         `}
                         style={{
                           top: top + 1,
                           height: height - 2,
-                          backgroundColor: isSel ? mod.couleur : mod.couleur + 'cc',
+                          backgroundColor: mod.couleur,
                           color: 'white',
                         }}
                         title={`${mod.nom} — ${mod.site} (${available} place${available > 1 ? 's' : ''} disponible${available > 1 ? 's' : ''})`}
                       >
-                        <div className="flex flex-col justify-between h-full overflow-hidden">
-                          <div>
+                        <div className="flex flex-col items-center justify-between h-full overflow-hidden text-center">
+                          <div className="pt-1">
                             <p className="font-bold text-sm leading-tight drop-shadow-sm">{mod.nom}</p>
                             <p className="text-xs opacity-90 drop-shadow-sm">{mod.site}</p>
                           </div>
+                          <span className="text-5xl drop-shadow-sm">{MODULE_ICONS[mod.nom] || '📋'}</span>
                           {isSel && sel ? (
-                            <p className="text-xs font-semibold mt-1 bg-white/30 rounded px-1 inline-block w-fit">S{sel.semaine.semaine}</p>
+                            <p className="text-xs font-semibold bg-white/30 rounded px-1 mb-1">S{sel.semaine.semaine}</p>
                           ) : (
-                            <p className="text-xs opacity-80 mt-1">{available}/{mod.placesTotal} pl.</p>
+                            <p className="text-xs font-bold opacity-90 mb-1">Place{available > 1 ? 's' : ''} restante{available > 1 ? 's' : ''} : {available}</p>
                           )}
                         </div>
                         {isSel && (

@@ -94,8 +94,8 @@ export default function SecteurCalendar({
       {/* Bouton retour */}
       <button
         onClick={onBackToEtablissement}
-        className="flex items-center gap-2 text-cb-blue hover:text-cb-blue/80
-                   transition-colors mb-6 cursor-pointer"
+        className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                   px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
         aria-label="Retour à l'établissement"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

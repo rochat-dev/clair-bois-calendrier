@@ -119,8 +119,8 @@ export default function WeekDetail({
       {/* Bouton retour */}
       <button
         onClick={onBackToCalendar}
-        className="flex items-center gap-2 text-cb-blue hover:text-cb-blue/80
-                   transition-colors mb-6 cursor-pointer"
+        className="inline-flex items-center gap-2 text-sm font-medium text-white bg-cb-blue hover:bg-cb-blue/90
+                   px-4 py-2 rounded-lg transition-colors cursor-pointer mt-6 mb-4"
         aria-label="Retour au calendrier"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,9 +187,9 @@ export default function WeekDetail({
                   href={inscriptionUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full bg-cb-green hover:bg-cb-green/90 text-white text-center
+                  className="block w-full bg-cb-accent hover:bg-cb-accent/90 text-white text-center
                              font-semibold py-3 px-6 rounded-lg transition-colors duration-200
-                             focus:outline-none focus:ring-2 focus:ring-cb-green focus:ring-offset-2"
+                             focus:outline-none focus:ring-2 focus:ring-cb-accent focus:ring-offset-2"
                 >
                   S'inscrire pour cette semaine
                 </a>
@@ -239,9 +239,9 @@ export default function WeekDetail({
                           href={cUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block w-full bg-cb-green hover:bg-cb-green/90 text-white text-center
+                          className="block w-full bg-cb-accent hover:bg-cb-accent/90 text-white text-center
                                      font-semibold py-2 px-4 rounded-lg transition-colors duration-200
-                                     focus:outline-none focus:ring-2 focus:ring-cb-green focus:ring-offset-2 text-sm"
+                                     focus:outline-none focus:ring-2 focus:ring-cb-accent focus:ring-offset-2 text-sm"
                         >
                           S'inscrire
                         </a>
