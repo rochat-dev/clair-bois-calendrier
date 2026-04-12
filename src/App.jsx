@@ -23,6 +23,7 @@ import ModulesMetiers from './components/ModulesMetiers'
 import StagesPage from './components/StagesPage'
 import Aiguillage from './components/Aiguillage'
 import FormulaireInscription from './components/FormulaireInscription'
+import FormulaireSignalement from './components/FormulaireSignalement'
 import Footer from './components/Footer'
 
 function App() {
@@ -137,6 +138,11 @@ function App() {
     setCurrentView(aiguillageParcours) // 'stages' ou 'modules'
   }
 
+  /** Navigation vers le formulaire de signalement d'urgence */
+  const goToSignalement = () => {
+    setCurrentView('signalement')
+  }
+
   /** Navigation vers le formulaire intégré (depuis StagesPage ou ModulesMetiers) */
   const goToFormulaire = (contextData) => {
     setFormulaireContext(contextData)
@@ -187,7 +193,7 @@ function App() {
       <main className="max-w-5xl mx-auto px-4 py-6 flex-1">
         {/* Ecran 1 : Page d'accueil — choix du parcours */}
         {currentView === 'home' && (
-          <HomePage data={data} onGoToModules={goToModules} onGoToStages={goToStages} />
+          <HomePage data={data} onGoToModules={goToModules} onGoToStages={goToStages} onGoToSignalement={goToSignalement} />
         )}
 
         {/* Ecran 2 : Page etablissement — choix du secteur */}
@@ -255,7 +261,12 @@ function App() {
           />
         )}
 
-        {/* Ecran 7 : Formulaire intégré */}
+        {/* Ecran 7 : Signalement d'urgence (annulation / retard) */}
+        {currentView === 'signalement' && (
+          <FormulaireSignalement onGoHome={goToHome} />
+        )}
+
+        {/* Ecran 8 : Formulaire intégré */}
         {currentView === 'formulaire' && chemin && formulaireContext && (
           <FormulaireInscription
             parcours={aiguillageParcours}
